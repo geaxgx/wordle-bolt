@@ -1,4 +1,4 @@
 export const WORDS_SECRET = [
   "PORTE",
-  "PERTE", "LEGER"
+  "PERTE", "LEGER", "FAIRE"
 ];
