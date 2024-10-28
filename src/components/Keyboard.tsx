@@ -11,7 +11,7 @@ const Keyboard: React.FC<KeyboardProps> = ({ onKeyPress, usedLetters }) => {
   const rows = [
     ['A', 'Z', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
     ['Q', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M'],
-    ['ENTER', 'W', 'X', 'C', 'V', 'B', 'N', 'BACK']
+    ['BACK', 'W', 'X', 'C', 'V', 'B', 'N', 'ENTER'] // Switched 'ENTER' and 'BACK'
   ];
 
   const getKeyClass = (key: string) => {
@@ -41,7 +41,7 @@ const Keyboard: React.FC<KeyboardProps> = ({ onKeyPress, usedLetters }) => {
               className={getKeyClass(key)}
               onClick={() => onKeyPress(key)}
             >
-              {key}
+              {key === 'BACK' ? <span style={{ fontSize: '2.5em', fontWeight: 'bold' }}>←</span> : key} 
             </button>
           ))}
         </div>
