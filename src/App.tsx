@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { WORDS } from './words';
 import { WORDS_SECRET } from './words_secret';
-import GameBoard from './components/GameBoard';
+import GameBoard from './components/WordleGameBoard';
 import Keyboard from './components/Keyboard';
-import ThemeToggle from './components/ThemeToggle';
+// import ThemeToggle from './components/ThemeToggle';
 import Header from './components/Header';
 import Modal from './components/Modal';
 
