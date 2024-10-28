@@ -25,7 +25,8 @@ const Keyboard: React.FC<KeyboardProps> = ({ onKeyPress, usedLetters }) => {
       case 'present':
         return `${className} bg-yellow-500 text-white`;
       case 'absent':
-        return `${className} bg-gray-500 text-white`;
+        return `${className} bg-gray-500 text-gray-400`;
+        // return `${className} bg-gray-500 text-white`;
       default:
         return `${className} bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600`;
     }
