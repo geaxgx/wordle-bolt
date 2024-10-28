@@ -53,7 +53,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ guesses, currentGuess, targetWord
           <div key={rowIndex} className={`grid grid-cols-5 gap-1 ${invalidGuess && rowIndex === guesses.length ? 'shake-animation' : ''}`}>
             {Array.from({ length: 5 }).map((_, colIndex) => {
               const letter = guess[colIndex] || '';
-              let className = 'w-14 h-14 border-2 flex items-center justify-center text-2xl font-bold uppercase transition-all duration-300 rounded-md'; // Added rounded-md for rounded corners
+              let className = 'w-14 h-14 border-2 flex items-center justify-center text-2xl font-bold uppercase transition-all duration-300 rounded-md';
 
               if (rowIndex < guesses.length) {
                 className += ' flip-animation';
@@ -66,12 +66,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ guesses, currentGuess, targetWord
                   className += ' bg-gray-500 text-white border-gray-500';
                 }
               } else {
-                className += ' bg-white text-black border-gray-300';
+                className += ' bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600';
                 if (rowIndex === guesses.length && colIndex === cursorPosition) {
-                  className += ' border-gray-800 border-4 rounded-full'; // Changed to rounded-full for a circular cursor
+                  className += ' border-gray-800 dark:border-white border-4 rounded-full';
                 }
                 if (invalidGuess && rowIndex === guesses.length) {
-                  className += ' bg-orange-200';
+                  className += ' bg-orange-200 dark:bg-orange-400';
                 }
               }
 

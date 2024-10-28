@@ -3,6 +3,7 @@ import { WORDS } from './words';
 import { WORDS_SECRET } from './words_secret';
 import GameBoard from './components/GameBoard';
 import Keyboard from './components/Keyboard';
+import ThemeToggle from './components/ThemeToggle';
 
 const App: React.FC = () => {
   const [targetWord, setTargetWord] = useState('');
@@ -14,6 +15,11 @@ const App: React.FC = () => {
   const [usedLetters, setUsedLetters] = useState<Record<string, string>>({});
   const [cursorPosition, setCursorPosition] = useState(0);
   const [invalidGuess, setInvalidGuess] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    console.log('Initial theme:', savedTheme);
+    return savedTheme ? savedTheme === 'dark' : false;
+  });
 
   useEffect(() => {
     setTargetWord(WORDS_SECRET[Math.floor(Math.random() * WORDS_SECRET.length)]);
@@ -98,6 +104,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Prevent the event from bubbling up
+      event.stopPropagation();
+      
       if (event.key === 'Backspace') {
         handleKeyPress('BACK');
       } else if (event.key === 'Enter') {
@@ -113,9 +122,21 @@ const App: React.FC = () => {
     };
   }, [handleKeyPress]);
 
+  useEffect(() => {
+    console.log('Theme changed:', isDarkMode ? 'dark' : 'light');
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold mb-8">Wordle</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+      <header>
+        <ThemeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+      </header>
+      <h1 className="text-4xl font-bold mb-8 text-black dark:text-white">Wordle</h1>
       <GameBoard
         guesses={guesses}
         currentGuess={currentGuess}
@@ -125,17 +146,17 @@ const App: React.FC = () => {
       />
       {message && (
         <div className={`mt-4 mb-4 p-2 rounded ${
-          messageType === 'success' ? 'bg-green-200 text-green-800' :
-          messageType === 'error' ? 'bg-red-200 text-red-800' :
-          messageType === 'warning' ? 'bg-yellow-200 text-yellow-800' :
-          'bg-blue-200 text-blue-800'
+          messageType === 'success' ? 'bg-green-200 dark:bg-green-400 text-green-800 dark:text-green-900' :
+          messageType === 'error' ? 'bg-red-200 dark:bg-red-400 text-red-800 dark:text-red-900' :
+          messageType === 'warning' ? 'bg-yellow-200 dark:bg-yellow-400 text-yellow-800 dark:text-yellow-900' :
+          'bg-blue-200 dark:bg-blue-400 text-blue-800 dark:text-blue-900'
         }`}>
           {message}
         </div>
       )}
       {gameOver && (
         <button
-          className="mt-2 mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          className="mt-2 mb-4 px-4 py-2 bg-blue-500 dark:bg-blue-700 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors"
           onClick={resetGame}
         >
           Rejouer
