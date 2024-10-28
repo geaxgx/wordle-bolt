@@ -1,13 +1,18 @@
 import React from 'react';
 import { Sun, Moon, HelpCircle } from 'lucide-react';
+import GameMenu from './GameMenu';
 
 interface HeaderProps {
   isDarkMode: boolean;
   setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
   onHelpClick: () => void;
+  currentGame: string;
+  onGameSelect: (game: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ isDarkMode, setIsDarkMode, onHelpClick }) => {
+const Header: React.FC<HeaderProps> = ({ isDarkMode, setIsDarkMode, onHelpClick, currentGame, onGameSelect }) => {
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
   const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {
     const newTheme = !isDarkMode;
     localStorage.setItem('theme', newTheme ? 'dark' : 'light');
@@ -16,7 +21,15 @@ const Header: React.FC<HeaderProps> = ({ isDarkMode, setIsDarkMode, onHelpClick 
   };
 
   return (
-    <div className="w-full bg-gray-100 dark:bg-gray-800 p-4 flex justify-end items-center">
+    <div className="w-full bg-gray-100 dark:bg-gray-800 p-4 flex justify-between items-center">
+      <div className="relative">
+        <GameMenu
+          isOpen={isMenuOpen}
+          onToggle={() => setIsMenuOpen(!isMenuOpen)}
+          onGameSelect={onGameSelect}
+          currentGame={currentGame}
+        />
+      </div>
       <div className="space-x-2">
         <button
           onClick={onHelpClick}

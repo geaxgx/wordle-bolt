@@ -6,6 +6,7 @@ import Keyboard from './components/Keyboard';
 // import ThemeToggle from './components/ThemeToggle';
 import Header from './components/Header';
 import Modal from './components/Modal';
+import HashtagGame from './components/HashtagGame';
 
 const App: React.FC = () => {
   const [targetWord, setTargetWord] = useState('');
@@ -23,6 +24,7 @@ const App: React.FC = () => {
     return savedTheme ? savedTheme === 'dark' : false;
   });
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [currentGame, setCurrentGame] = useState('wordle');
 
   useEffect(() => {
     setTargetWord(WORDS_SECRET[Math.floor(Math.random() * WORDS_SECRET.length)]);
@@ -139,64 +141,70 @@ const App: React.FC = () => {
       <Header 
         isDarkMode={isDarkMode} 
         setIsDarkMode={setIsDarkMode} 
-        onHelpClick={() => setIsHelpModalOpen(true)} 
+        onHelpClick={() => setIsHelpModalOpen(true)}
+        currentGame={currentGame}
+        onGameSelect={setCurrentGame}
       />
-      <h1 className="text-4xl font-bold my-8 text-black dark:text-white">Wordle</h1>
-
-      {/* Add this Modal component before the GameBoard */}
-      <Modal
-        isOpen={isHelpModalOpen}
-        onClose={() => setIsHelpModalOpen(false)}
-        title="Comment jouer"
-      >
-        <div className="space-y-4">
-          <p>Devinez le mot en 6 essais.</p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li>Chaque essai doit être un mot valide de 5 lettres.</li>
-            <li>La couleur des tuiles changera pour montrer si les lettres font partie du mot :</li>
-            <ul className="list-none pl-5 space-y-2 mt-2">
-              <li className="flex items-center">
-                <span className="w-4 h-4 bg-green-500 rounded-sm mr-2"></span>
-                Vert : La lettre est dans le mot et bien placée
-              </li>
-              <li className="flex items-center">
-                <span className="w-4 h-4 bg-yellow-500 rounded-sm mr-2"></span>
-                Jaune : La lettre est dans le mot mais mal placée
-              </li>
-              <li className="flex items-center">
-                <span className="w-4 h-4 bg-gray-500 rounded-sm mr-2"></span>
-                Gris : La lettre n'est pas dans le mot
-              </li>
-            </ul>
-          </ul>
-        </div>
-      </Modal>
-      <GameBoard
-        guesses={guesses}
-        currentGuess={currentGuess}
-        targetWord={targetWord}
-        cursorPosition={cursorPosition}
-        invalidGuess={invalidGuess}
-      />
-      {message && (
-        <div className={`mt-4 mb-4 p-2 rounded ${
-          messageType === 'success' ? 'bg-green-200 dark:bg-green-400 text-green-800 dark:text-green-900' :
-          messageType === 'error' ? 'bg-red-200 dark:bg-red-400 text-red-800 dark:text-red-900' :
-          messageType === 'warning' ? 'bg-yellow-200 dark:bg-yellow-400 text-yellow-800 dark:text-yellow-900' :
-          'bg-blue-200 dark:bg-blue-400 text-blue-800 dark:text-blue-900'
-        }`}>
-          {message}
-        </div>
+      {currentGame === 'wordle' ? (
+        <>
+          <h1 className="text-4xl font-bold my-8 text-black dark:text-white">Wordle</h1>
+          <Modal
+            isOpen={isHelpModalOpen}
+            onClose={() => setIsHelpModalOpen(false)}
+            title="Comment jouer"
+          >
+            <div className="space-y-4">
+              <p>Devinez le mot en 6 essais.</p>
+              <ul className="list-disc pl-5 space-y-2">
+                <li>Chaque essai doit être un mot valide de 5 lettres.</li>
+                <li>La couleur des tuiles changera pour montrer si les lettres font partie du mot :</li>
+                <ul className="list-none pl-5 space-y-2 mt-2">
+                  <li className="flex items-center">
+                    <span className="w-4 h-4 bg-green-500 rounded-sm mr-2"></span>
+                    Vert : La lettre est dans le mot et bien placée
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-4 h-4 bg-yellow-500 rounded-sm mr-2"></span>
+                    Jaune : La lettre est dans le mot mais mal placée
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-4 h-4 bg-gray-500 rounded-sm mr-2"></span>
+                    Gris : La lettre n'est pas dans le mot
+                  </li>
+                </ul>
+              </ul>
+            </div>
+          </Modal>
+          <GameBoard
+            guesses={guesses}
+            currentGuess={currentGuess}
+            targetWord={targetWord}
+            cursorPosition={cursorPosition}
+            invalidGuess={invalidGuess}
+          />
+          {message && (
+            <div className={`mt-4 mb-4 p-2 rounded ${
+              messageType === 'success' ? 'bg-green-200 dark:bg-green-400 text-green-800 dark:text-green-900' :
+              messageType === 'error' ? 'bg-red-200 dark:bg-red-400 text-red-800 dark:text-red-900' :
+              messageType === 'warning' ? 'bg-yellow-200 dark:bg-yellow-400 text-yellow-800 dark:text-yellow-900' :
+              'bg-blue-200 dark:bg-blue-400 text-blue-800 dark:text-blue-900'
+            }`}>
+              {message}
+            </div>
+          )}
+          {gameOver && (
+            <button
+              className="mt-2 mb-4 px-4 py-2 bg-blue-500 dark:bg-blue-700 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors"
+              onClick={resetGame}
+            >
+              Rejouer
+            </button>
+          )}
+          <Keyboard onKeyPress={handleKeyPress} usedLetters={usedLetters} />
+        </>
+      ) : (
+        <HashtagGame />
       )}
-      {gameOver && (
-        <button
-          className="mt-2 mb-4 px-4 py-2 bg-blue-500 dark:bg-blue-700 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors"
-          onClick={resetGame}
-        >
-          Rejouer
-        </button>
-      )}
-      <Keyboard onKeyPress={handleKeyPress} usedLetters={usedLetters} />
     </div>
   );
 };
