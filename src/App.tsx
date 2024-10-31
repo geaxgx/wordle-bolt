@@ -25,6 +25,7 @@ const App: React.FC = () => {
   });
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [currentGame, setCurrentGame] = useState('wordle');
+  const [isHashtagHelpModalOpen, setIsHashtagHelpModalOpen] = useState(false);
 
   useEffect(() => {
     setTargetWord(WORDS_SECRET[Math.floor(Math.random() * WORDS_SECRET.length)]);
@@ -141,7 +142,7 @@ const App: React.FC = () => {
       <Header 
         isDarkMode={isDarkMode} 
         setIsDarkMode={setIsDarkMode} 
-        onHelpClick={() => setIsHelpModalOpen(true)}
+        onHelpClick={() => currentGame === 'wordle' ? setIsHelpModalOpen(true) : setIsHashtagHelpModalOpen(true)}
         currentGame={currentGame}
         onGameSelect={setCurrentGame}
       />
@@ -203,7 +204,38 @@ const App: React.FC = () => {
           <Keyboard onKeyPress={handleKeyPress} usedLetters={usedLetters} />
         </>
       ) : (
-        <HashtagGame />
+        <>
+          <HashtagGame />
+          <Modal
+            isOpen={isHashtagHelpModalOpen}
+            onClose={() => setIsHashtagHelpModalOpen(false)}
+            title="Comment jouer au Hashtag"
+          >
+            <div className="space-y-4">
+              <p>Déplacez les lettres sur la grille pour découvrir les mots cachés.</p>
+              <p>La couleur des tuiles changera pour montrer si les lettres font partie du mot :</p>
+                <ul className="list-none pl-5 space-y-2 mt-2">
+                  <li className="flex items-center">
+                    <span className="w-4 h-4 bg-green-500 rounded-sm mr-2"></span>
+                    Vert : La lettre est dans le mot et bien placée
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-4 h-4 bg-yellow-500 rounded-sm mr-2"></span>
+                    Jaune : La lettre est dans le mot mais mal placée. 
+                    
+                  </li>
+                  <li>Si la lettre est à l'intersection de 2 mots, cela signifie que la lettre est dans au moins un des 2 mots, mais pas forcément dans les 2.</li>
+                  <li className="flex items-center">
+                    <span className="w-4 h-4 bg-gray-500 rounded-sm mr-2"></span>
+                    Gris : La lettre n'est pas dans le mot
+                  </li>
+                </ul>
+              <p>Pour gagner vous disposez de 12 coups pour placer toutes les lettres à la bonne place.</p>
+              <p>Bonne chance !</p>
+
+            </div>
+          </Modal>
+        </>
       )}
     </div>
   );
