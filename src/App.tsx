@@ -47,8 +47,15 @@ const App: React.FC = () => {
     if (gameOver) return;
 
     if (key === 'BACK') {
-      setCurrentGuess(prev => prev.slice(0, -1));
+      if (cursorPosition > 0) {
+        const newGuess = currentGuess.slice(0, cursorPosition - 1) + currentGuess.slice(cursorPosition);
+        setCurrentGuess(newGuess);
+        setCursorPosition(prev => prev - 1);
+      }
+    } else if (key === 'LEFT') {
       setCursorPosition(prev => Math.max(0, prev - 1));
+    } else if (key === 'RIGHT') {
+      setCursorPosition(prev => Math.min(4, prev + 1));
     } else if (key === 'ENTER') {
       if (currentGuess.length !== 5) {
         setMessage('Le mot doit contenir 5 lettres');
@@ -102,11 +109,22 @@ const App: React.FC = () => {
         setMessageType('error');
         setGameOver(true);
       }
-    } else if (currentGuess.length < 5) {
-      setCurrentGuess(prev => prev + key);
-      setCursorPosition(prev => Math.min(4, prev + 1));
+    } else if (/^[A-Z]$/.test(key)) {
+      // Create a new guess string that's padded with spaces up to the cursor position
+      let newGuess = currentGuess.padEnd(cursorPosition, ' ');
+      
+      // Insert the new letter at cursor position
+      newGuess = newGuess.slice(0, cursorPosition) + key + newGuess.slice(cursorPosition + 1);
+      
+      // Remove any trailing spaces
+      newGuess = newGuess.trimEnd();
+
+      if (newGuess.length <= 5) {
+        setCurrentGuess(newGuess);
+        setCursorPosition(prev => Math.min(prev + 1, 4));
+      }
     }
-  }, [currentGuess, gameOver, guesses, targetWord, usedLetters]);
+  }, [currentGuess, gameOver, cursorPosition]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -117,6 +135,10 @@ const App: React.FC = () => {
         handleKeyPress('BACK');
       } else if (event.key === 'Enter') {
         handleKeyPress('ENTER');
+      } else if (event.key === 'ArrowLeft') {
+        handleKeyPress('LEFT');
+      } else if (event.key === 'ArrowRight') {
+        handleKeyPress('RIGHT');
       } else if (/^[A-Za-z]$/.test(event.key)) {
         handleKeyPress(event.key.toUpperCase());
       }
@@ -144,6 +166,13 @@ const App: React.FC = () => {
       const newZoom = direction === 'in' ? prev + 0.05 : prev - 0.05;
       return Math.min(Math.max(newZoom, 0.75), 2); // Clamp between 0.75 and 2
     });
+  };
+
+  // Add a new handler for tile clicks
+  const handleTileClick = (position: number) => {
+    if (!gameOver) {
+      setCursorPosition(position);
+    }
   };
 
   return (
@@ -199,6 +228,7 @@ const App: React.FC = () => {
               targetWord={targetWord}
               cursorPosition={cursorPosition}
               invalidGuess={invalidGuess}
+              onTileClick={handleTileClick}
             />
             {message && (
               <div className={`mt-4 mb-4 p-2 rounded ${

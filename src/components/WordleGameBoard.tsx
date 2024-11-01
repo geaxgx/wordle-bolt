@@ -6,9 +6,10 @@ interface GameBoardProps {
   targetWord: string;
   cursorPosition: number;
   invalidGuess: boolean;
+  onTileClick: (position: number) => void;
 }
 
-const GameBoard: React.FC<GameBoardProps> = ({ guesses, currentGuess, targetWord, cursorPosition, invalidGuess }) => {
+const GameBoard: React.FC<GameBoardProps> = ({ guesses, currentGuess, targetWord, cursorPosition, invalidGuess, onTileClick }) => {
   const rows = Array(6).fill('').map((_, index) => 
     index < guesses.length ? guesses[index] : 
     index === guesses.length ? currentGuess : 
@@ -53,7 +54,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ guesses, currentGuess, targetWord
           <div key={rowIndex} className={`grid grid-cols-5 gap-1 ${invalidGuess && rowIndex === guesses.length ? 'shake-animation' : ''}`}>
             {Array.from({ length: 5 }).map((_, colIndex) => {
               const letter = guess[colIndex] || '';
-              let className = 'w-14 h-14 border-2 flex items-center justify-center text-2xl font-bold uppercase transition-all duration-300 rounded-md';
+              let className = 'w-14 h-14 border-2 flex items-center justify-center text-2xl font-bold uppercase transition-all duration-300 rounded-md cursor-pointer';
 
               if (rowIndex < guesses.length) {
                 className += ' flip-animation';
@@ -76,7 +77,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ guesses, currentGuess, targetWord
               }
 
               return (
-                <div key={colIndex} className={className}>
+                <div key={colIndex} className={className} onClick={() => onTileClick(colIndex)}>
                   {letter}
                 </div>
               );
