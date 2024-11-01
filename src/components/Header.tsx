@@ -1,6 +1,7 @@
 import React from 'react';
-import { Sun, Moon, HelpCircle } from 'lucide-react';
+import { Sun, Moon, HelpCircle, ZoomIn, ZoomOut } from 'lucide-react';
 import GameMenu from './GameMenu';
+import Button from './Button';
 
 interface HeaderProps {
   isDarkMode: boolean;
@@ -8,9 +9,13 @@ interface HeaderProps {
   onHelpClick: () => void;
   currentGame: string;
   onGameSelect: (game: string) => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  canZoomIn: boolean;
+  canZoomOut: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ isDarkMode, setIsDarkMode, onHelpClick, currentGame, onGameSelect }) => {
+const Header: React.FC<HeaderProps> = ({ isDarkMode, setIsDarkMode, onHelpClick, currentGame, onGameSelect, onZoomIn, onZoomOut, canZoomIn, canZoomOut }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -31,20 +36,36 @@ const Header: React.FC<HeaderProps> = ({ isDarkMode, setIsDarkMode, onHelpClick,
         />
       </div>
       <div className="space-x-2">
-        <button
+        <Button
+          onClick={onZoomOut}
+          disabled={!canZoomOut}
+          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Zoom out"
+        >
+          <ZoomOut className="w-6 h-6" />
+        </Button>
+        <Button
+          onClick={onZoomIn}
+          disabled={!canZoomIn}
+          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Zoom in"
+        >
+          <ZoomIn className="w-6 h-6" />
+        </Button>
+        <Button
           onClick={onHelpClick}
           className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           aria-label="Help"
         >
           <HelpCircle className="w-6 h-6" />
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={toggleTheme}
           className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           aria-label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
           {isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
-        </button>
+        </Button>
       </div>
     </div>
   );

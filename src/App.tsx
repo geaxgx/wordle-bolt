@@ -3,7 +3,6 @@ import { WORDS } from './words';
 import { WORDS_SECRET } from './words_secret';
 import GameBoard from './components/WordleGameBoard';
 import Keyboard from './components/Keyboard';
-// import ThemeToggle from './components/ThemeToggle';
 import Header from './components/Header';
 import Modal from './components/Modal';
 import HashtagGame from './components/HashtagGame';
@@ -26,6 +25,7 @@ const App: React.FC = () => {
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [currentGame, setCurrentGame] = useState('wordle');
   const [isHashtagHelpModalOpen, setIsHashtagHelpModalOpen] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
     setTargetWord(WORDS_SECRET[Math.floor(Math.random() * WORDS_SECRET.length)]);
@@ -132,111 +132,129 @@ const App: React.FC = () => {
     console.log('Theme changed:', isDarkMode ? 'dark' : 'light');
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
+      document.body.classList.add('bg-gray-900');
     } else {
       document.documentElement.classList.remove('dark');
+      document.body.classList.remove('bg-gray-900');
     }
   }, [isDarkMode]);
 
+  const handleZoom = (direction: 'in' | 'out') => {
+    setZoomLevel(prev => {
+      const newZoom = direction === 'in' ? prev + 0.05 : prev - 0.05;
+      return Math.min(Math.max(newZoom, 0.75), 2); // Clamp between 0.75 and 2
+    });
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
       <Header 
         isDarkMode={isDarkMode} 
-        setIsDarkMode={setIsDarkMode} 
+        setIsDarkMode={setIsDarkMode}
         onHelpClick={() => currentGame === 'wordle' ? setIsHelpModalOpen(true) : setIsHashtagHelpModalOpen(true)}
         currentGame={currentGame}
         onGameSelect={setCurrentGame}
+        onZoomIn={() => handleZoom('in')}
+        onZoomOut={() => handleZoom('out')}
+        canZoomIn={zoomLevel < 2}
+        canZoomOut={zoomLevel > 0.75}
       />
-      {currentGame === 'wordle' ? (
-        <>
-          <h1 className="text-4xl font-bold my-8 text-black dark:text-white">Wordle</h1>
-          <Modal
-            isOpen={isHelpModalOpen}
-            onClose={() => setIsHelpModalOpen(false)}
-            title="Comment jouer"
-          >
-            <div className="space-y-4">
-              <p>Devinez le mot en 6 essais.</p>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>Chaque essai doit être un mot valide de 5 lettres.</li>
-                <li>La couleur des tuiles changera pour montrer si les lettres font partie du mot :</li>
-                <ul className="list-none pl-5 space-y-2 mt-2">
-                  <li className="flex items-center">
-                    <span className="w-4 h-4 bg-green-500 rounded-sm mr-2"></span>
-                    Vert : La lettre est dans le mot et bien placée
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-4 h-4 bg-yellow-500 rounded-sm mr-2"></span>
-                    Jaune : La lettre est dans le mot mais mal placée
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-4 h-4 bg-gray-500 rounded-sm mr-2"></span>
-                    Gris : La lettre n'est pas dans le mot
-                  </li>
-                </ul>
-              </ul>
-            </div>
-          </Modal>
-          <GameBoard
-            guesses={guesses}
-            currentGuess={currentGuess}
-            targetWord={targetWord}
-            cursorPosition={cursorPosition}
-            invalidGuess={invalidGuess}
-          />
-          {message && (
-            <div className={`mt-4 mb-4 p-2 rounded ${
-              messageType === 'success' ? 'bg-green-200 dark:bg-green-400 text-green-800 dark:text-green-900' :
-              messageType === 'error' ? 'bg-red-200 dark:bg-red-400 text-red-800 dark:text-red-900' :
-              messageType === 'warning' ? 'bg-yellow-200 dark:bg-yellow-400 text-yellow-800 dark:text-yellow-900' :
-              'bg-blue-200 dark:bg-blue-400 text-blue-800 dark:text-blue-900'
-            }`}>
-              {message}
-            </div>
-          )}
-          {gameOver && (
-            <button
-              className="mt-2 mb-4 px-4 py-2 bg-blue-500 dark:bg-blue-700 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors"
-              onClick={resetGame}
+      <div 
+        className="flex flex-col items-center flex-grow"
+        style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'top center' }}
+      >
+        {currentGame === 'wordle' ? (
+          <>
+            <h1 className="text-4xl font-bold my-8 text-black dark:text-white">Wordle</h1>
+            <Modal
+              isOpen={isHelpModalOpen}
+              onClose={() => setIsHelpModalOpen(false)}
+              title="Comment jouer"
             >
-              Rejouer
-            </button>
-          )}
-          <Keyboard onKeyPress={handleKeyPress} usedLetters={usedLetters} />
-        </>
-      ) : (
-        <>
-          <HashtagGame />
-          <Modal
-            isOpen={isHashtagHelpModalOpen}
-            onClose={() => setIsHashtagHelpModalOpen(false)}
-            title="Comment jouer au Hashtag"
-          >
-            <div className="space-y-4">
-              <p>Déplacez les lettres sur la grille pour découvrir les mots cachés.</p>
-              <p>La couleur des tuiles changera pour montrer si les lettres font partie du mot :</p>
-                <ul className="list-none pl-5 space-y-2 mt-2">
-                  <li className="flex items-center">
-                    <span className="w-4 h-4 bg-green-500 rounded-sm mr-2"></span>
-                    Vert : La lettre est dans le mot et bien placée
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-4 h-4 bg-yellow-500 rounded-sm mr-2"></span>
-                    Jaune : La lettre est dans le mot mais mal placée. 
-                    
-                  </li>
-                  <li>Si la lettre est à l'intersection de 2 mots, cela signifie que la lettre est dans au moins un des 2 mots, mais pas forcément dans les 2.</li>
-                  <li className="flex items-center">
-                    <span className="w-4 h-4 bg-gray-500 rounded-sm mr-2"></span>
-                    Gris : La lettre n'est pas dans le mot
-                  </li>
+              <div className="space-y-4">
+                <p>Devinez le mot en 6 essais.</p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>Chaque essai doit être un mot valide de 5 lettres.</li>
+                  <li>La couleur des tuiles changera pour montrer si les lettres font partie du mot :</li>
+                  <ul className="list-none pl-5 space-y-2 mt-2">
+                    <li className="flex items-center">
+                      <span className="w-4 h-4 bg-green-500 rounded-sm mr-2"></span>
+                      Vert : La lettre est dans le mot et bien placée
+                    </li>
+                    <li className="flex items-center">
+                      <span className="w-4 h-4 bg-yellow-500 rounded-sm mr-2"></span>
+                      Jaune : La lettre est dans le mot mais mal placée
+                    </li>
+                    <li className="flex items-center">
+                      <span className="w-4 h-4 bg-gray-500 rounded-sm mr-2"></span>
+                      Gris : La lettre n'est pas dans le mot
+                    </li>
+                  </ul>
                 </ul>
-              <p>Pour gagner vous disposez de 12 coups pour placer toutes les lettres à la bonne place.</p>
-              <p>Bonne chance !</p>
+              </div>
+            </Modal>
+            <GameBoard
+              guesses={guesses}
+              currentGuess={currentGuess}
+              targetWord={targetWord}
+              cursorPosition={cursorPosition}
+              invalidGuess={invalidGuess}
+            />
+            {message && (
+              <div className={`mt-4 mb-4 p-2 rounded ${
+                messageType === 'success' ? 'bg-green-200 dark:bg-green-400 text-green-800 dark:text-green-900' :
+                messageType === 'error' ? 'bg-red-200 dark:bg-red-400 text-red-800 dark:text-red-900' :
+                messageType === 'warning' ? 'bg-yellow-200 dark:bg-yellow-400 text-yellow-800 dark:text-yellow-900' :
+                'bg-blue-200 dark:bg-blue-400 text-blue-800 dark:text-blue-900'
+              }`}>
+                {message}
+              </div>
+            )}
+            {gameOver && (
+              <button
+                className="mt-2 mb-4 px-4 py-2 bg-blue-500 dark:bg-blue-700 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors"
+                onClick={resetGame}
+              >
+                Rejouer
+              </button>
+            )}
+            <Keyboard onKeyPress={handleKeyPress} usedLetters={usedLetters} />
+          </>
+        ) : (
+          <>
+            <HashtagGame zoomLevel={zoomLevel} />
+            <Modal
+              isOpen={isHashtagHelpModalOpen}
+              onClose={() => setIsHashtagHelpModalOpen(false)}
+              title="Comment jouer au Hashtag"
+            >
+              <div className="space-y-4">
+                <p>Déplacez les lettres sur la grille pour découvrir les mots cachés.</p>
+                <p>La couleur des tuiles changera pour montrer si les lettres font partie du mot :</p>
+                  <ul className="list-none pl-5 space-y-2 mt-2">
+                    <li className="flex items-center">
+                      <span className="w-4 h-4 bg-green-500 rounded-sm mr-2"></span>
+                      Vert : La lettre est dans le mot et bien placée
+                    </li>
+                    <li className="flex items-center">
+                      <span className="w-4 h-4 bg-yellow-500 rounded-sm mr-2"></span>
+                      Jaune : La lettre est dans le mot mais mal placée. 
+                      
+                    </li>
+                    <li>Si la lettre est à l'intersection de 2 mots, cela signifie que la lettre est dans au moins un des 2 mots, mais pas forcément dans les 2.</li>
+                    <li className="flex items-center">
+                      <span className="w-4 h-4 bg-gray-500 rounded-sm mr-2"></span>
+                      Gris : La lettre n'est pas dans le mot
+                    </li>
+                  </ul>
+                <p>Pour gagner vous disposez de 12 coups pour placer toutes les lettres à la bonne place.</p>
+                <p>Bonne chance !</p>
 
-            </div>
-          </Modal>
-        </>
-      )}
+              </div>
+            </Modal>
+          </>
+        )}
+      </div>
     </div>
   );
 };

@@ -171,11 +171,10 @@ const updateLetterStates = (grid: Letter[][], initialGrid: Letter[][]): Letter[]
   const h2Status = getWordStatus(getWord(grid, 'H2'), getWord(initialGrid, 'H2'));
   const v1Status = getWordStatus(getWord(grid, 'V1'), getWord(initialGrid, 'V1'));
   const v2Status = getWordStatus(getWord(grid, 'V2'), getWord(initialGrid, 'V2'));
-
   // Create new grid with updated states
   return grid.map((row, y) => 
     row.map((letter, x) => {
-      if (!letter) return null;
+      if (!letter) return letter;
 
       // Get all applicable statuses for this position
       const statuses: string[] = [];
@@ -198,7 +197,11 @@ const updateLetterStates = (grid: Letter[][], initialGrid: Letter[][]): Letter[]
   );
 };
 
-const HashtagGame: React.FC = () => {
+interface Props {
+  zoomLevel: number;
+}
+
+const HashtagGame: React.FC<Props> = ({ zoomLevel }) => {
   const [gameState, setGameState] = useState<GameState>(() => {
     const initialGrid = createInitialGrid(FIXED_WORDS);
     const shuffledGrid = shuffleGrid(initialGrid);
@@ -216,8 +219,36 @@ const HashtagGame: React.FC = () => {
 
   const [draggedLetter, setDraggedLetter] = useState<DragInfo | null>(null);
 
-  const handleDragStart = (x: number, y: number) => {
+  const handleDragStart = (e: React.DragEvent, x: number, y: number) => {
     setDraggedLetter({ sourceX: x, sourceY: y });
+
+    // Create a clone of the dragged element
+    const draggedEl = e.currentTarget.cloneNode(true) as HTMLElement;
+    draggedEl.style.position = 'absolute';
+    draggedEl.style.top = '0';
+    draggedEl.style.left = '0';
+    draggedEl.style.pointerEvents = 'none';
+    
+    // Set explicit width and height based on zoom level
+    const baseSize = 56; // 56px = 3.5rem (w-14)
+    draggedEl.style.width = `${baseSize * zoomLevel}px`;
+    draggedEl.style.height = `${baseSize * zoomLevel}px`;
+    draggedEl.style.display = 'flex';
+    draggedEl.style.alignItems = 'center';
+    draggedEl.style.justifyContent = 'center';
+    draggedEl.style.fontSize = `${24 * zoomLevel}px`; // Scale font size too (24px = text-2xl)
+
+    document.body.appendChild(draggedEl);
+
+    // Calculate the offset based on the scaled size
+    const offsetX = (baseSize * zoomLevel) / 2;
+    const offsetY = (baseSize * zoomLevel) / 2;
+
+    e.dataTransfer.setDragImage(draggedEl, offsetX, offsetY);
+
+    setTimeout(() => {
+      document.body.removeChild(draggedEl);
+    }, 0);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -269,9 +300,9 @@ const HashtagGame: React.FC = () => {
 
   const getLetterStyle = (state: Letter['state'], isDragging: boolean) => {
     const base = `w-14 h-14 flex items-center justify-center text-2xl font-bold rounded-md 
-                 cursor-move transition-all duration-300`;
+                 cursor-move transition-all duration-300 select-none`;
     
-    const dragClass = isDragging ? 'opacity-50 scale-95' : '';
+    const dragClass = isDragging ? 'opacity-50' : '';
     
     switch (state) {
       case 'correct':
@@ -308,7 +339,7 @@ const HashtagGame: React.FC = () => {
                   draggedLetter?.sourceX === x && draggedLetter?.sourceY === y
                 ) : 'w-14 h-14'}
                 draggable={!!letter}
-                onDragStart={() => handleDragStart(x, y)}
+                onDragStart={(e) => handleDragStart(e, x, y)}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(x, y)}
               >
@@ -337,18 +368,16 @@ const HashtagGame: React.FC = () => {
   };
 
   const showSolution = () => {
-    // Create a new grid with all letters marked as correct
     const solutionGrid = gameState.initialGrid.map(row =>
       row.map(letter =>
-        letter ? { ...letter, state: 'correct' } : null
+        letter ? { ...letter, state: 'correct' as const } : null
       )
     );
 
-    setGameState(prev => ({ 
-      ...prev, 
-      currentGrid: solutionGrid,
-      // Add a new flag to track if solution has been shown
-      solutionShown: true 
+    setGameState(prev => ({
+      ...prev,
+      currentGrid: solutionGrid as Letter[][],
+      solutionShown: true
     }));
   };
 
