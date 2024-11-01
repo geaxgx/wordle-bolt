@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { WORDS } from './words';
-import { WORDS_SECRET } from './words_secret';
+import { WORDS_ALL } from './WORDS_ODS9_5';
+import { WORDS_WORDLE, WORDS_HASHTAG } from './WORDS5';
 import GameBoard from './components/WordleGameBoard';
 import Keyboard from './components/Keyboard';
 import Header from './components/Header';
@@ -28,11 +28,11 @@ const App: React.FC = () => {
   const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
-    setTargetWord(WORDS_SECRET[Math.floor(Math.random() * WORDS_SECRET.length)]);
+    setTargetWord(WORDS_WORDLE[Math.floor(Math.random() * WORDS_WORDLE.length)]);
   }, []);
 
   const resetGame = () => {
-    setTargetWord(WORDS_SECRET[Math.floor(Math.random() * WORDS_SECRET.length)]);
+    setTargetWord(WORDS_WORDLE[Math.floor(Math.random() * WORDS_WORDLE.length)]);
     setGuesses([]);
     setCurrentGuess('');
     setGameOver(false);
@@ -61,7 +61,7 @@ const App: React.FC = () => {
         return;
       }
 
-      if (!WORDS.includes(currentGuess)) {
+      if (!WORDS_ALL.includes(currentGuess)) {
         setMessage('Mot non valide');
         setMessageType('error');
         setInvalidGuess(true);
