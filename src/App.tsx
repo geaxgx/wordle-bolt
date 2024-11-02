@@ -22,14 +22,22 @@ const App: React.FC = () => {
     return savedTheme ? savedTheme === 'dark' : false;
   });
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-  const [currentGame, setCurrentGame] = useState('wordle');
+  const [currentGame, setCurrentGame] = useState(() => {
+    const savedGame = localStorage.getItem('currentGame');
+    return savedGame || 'wordle';
+  });
   const [isHashtagHelpModalOpen, setIsHashtagHelpModalOpen] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomLevel, setZoomLevel] = useState(() => {
+    const savedZoom = localStorage.getItem('zoomLevel');
+    return savedZoom ? parseFloat(savedZoom) : 1;
+  });
   const hashtagGameRef = useRef<{ resetGame: () => void }>(null);
 
   useEffect(() => {
-    setTargetWord(WORDS_WORDLE[Math.floor(Math.random() * WORDS_WORDLE.length)]);
-  }, []);
+    if (currentGame === 'wordle') {
+      setTargetWord(WORDS_WORDLE[Math.floor(Math.random() * WORDS_WORDLE.length)]);
+    }
+  }, [currentGame]);
 
   const resetGame = () => {
     if (currentGame === 'wordle') {
@@ -167,7 +175,9 @@ const App: React.FC = () => {
   const handleZoom = (direction: 'in' | 'out') => {
     setZoomLevel(prev => {
       const newZoom = direction === 'in' ? prev + 0.05 : prev - 0.05;
-      return Math.min(Math.max(newZoom, 0.75), 2); // Clamp between 0.75 and 2
+      const clampedZoom = Math.min(Math.max(newZoom, 0.75), 2);
+      localStorage.setItem('zoomLevel', clampedZoom.toString());
+      return clampedZoom;
     });
   };
 
@@ -177,6 +187,10 @@ const App: React.FC = () => {
       setCursorPosition(position);
     }
   };
+
+  useEffect(() => {
+    localStorage.setItem('currentGame', currentGame);
+  }, [currentGame]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
