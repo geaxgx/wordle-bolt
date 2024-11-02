@@ -216,7 +216,7 @@ const App: React.FC = () => {
             <Modal
               isOpen={isHelpModalOpen}
               onClose={() => setIsHelpModalOpen(false)}
-              title="Comment jouer"
+              title="Comment jouer à Wordle"
             >
               <div className="space-y-4">
                 <p>Devinez le mot en 6 essais.</p>
@@ -260,10 +260,12 @@ const App: React.FC = () => {
             )}
             {gameOver && (
               <button
-                className="mt-2 mb-4 px-4 py-2 bg-blue-500 dark:bg-blue-700 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors"
+                // className="mt-2 mb-4 px-4 py-2 bg-blue-500 dark:bg-blue-700 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors"
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                
                 onClick={resetGame}
               >
-                Rejouer
+                Nouvelle partie
               </button>
             )}
             <Keyboard onKeyPress={handleKeyPress} usedLetters={usedLetters} />
@@ -291,7 +293,7 @@ const App: React.FC = () => {
                     </li>
                     <li>Si la lettre est à l'intersection de 2 mots, cela signifie que la lettre est dans au moins un des 2 mots, mais pas forcément dans les 2.</li>
                     <li className="flex items-center">
-                      <span className="w-4 h-4 bg-gray-500 rounded-sm mr-2"></span>
+                      <span className="w-4 h-4 bg-gray-300 dark:bg-gray-600 rounded-sm mr-2"></span>
                       Gris : La lettre n'est pas dans le mot
                     </li>
                   </ul>
