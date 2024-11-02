@@ -22,13 +22,13 @@ function regrouper_par_2eme_lettre(mots: string[]): Map<string, string[]> {
 const mots_par_l2 = regrouper_par_2eme_lettre(WORDS_HASHTAG);
 
 // Fonction pour imprimer la combinaison
-function print_combi(mot1: string, mot2: string, mot3: string, mot4: string): void {
-    console.log(` ${mot3[0]} ${mot4[0]}`);
-    console.log(mot1);
-    console.log(` ${mot3[2]} ${mot4[2]}`);
-    console.log(mot2);
-    console.log(` ${mot3[4]} ${mot4[4]}`);
-}
+// function print_combi(mot1: string, mot2: string, mot3: string, mot4: string): void {
+//     console.log(` ${mot3[0]} ${mot4[0]}`);
+//     console.log(mot1);
+//     console.log(` ${mot3[2]} ${mot4[2]}`);
+//     console.log(mot2);
+//     console.log(` ${mot3[4]} ${mot4[4]}`);
+// }
 
 // Fonction pour compter le nombre de lettres rares
 function compter_lettres_rares(lettres: string[]): number {

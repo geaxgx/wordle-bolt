@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Word, find_combination } from '../hashtag_find_words';
 
 interface Letter {
@@ -185,9 +185,10 @@ const updateLetterStates = (grid: Letter[][], initialGrid: Letter[][]): Letter[]
 
 interface Props {
   zoomLevel: number;
+  ref: React.ForwardedRef<{ resetGame: () => void }>;
 }
 
-const HashtagGame: React.FC<Props> = ({ zoomLevel }) => {
+const HashtagGame = React.forwardRef<{ resetGame: () => void }, Props>(({ zoomLevel }, ref) => {
   const [gameState, setGameState] = useState<GameState>(() => {
     const words = find_combination();
     const initialGrid = createInitialGrid(words);
@@ -205,6 +206,25 @@ const HashtagGame: React.FC<Props> = ({ zoomLevel }) => {
   });
 
   const [draggedLetter, setDraggedLetter] = useState<DragInfo | null>(null);
+
+  // Expose resetGame function through ref
+  React.useImperativeHandle(ref, () => ({
+    resetGame: () => {
+      const words = find_combination();
+      const initialGrid = createInitialGrid(words);
+      const shuffledGrid = shuffleGrid(initialGrid);
+      const coloredGrid = updateLetterStates(shuffledGrid, initialGrid);
+      
+      setGameState({
+        initialGrid,
+        currentGrid: coloredGrid,
+        movesLeft: 12,
+        gameWon: false,
+        gameLost: false,
+        solutionShown: false
+      });
+    }
+  }));
 
   const handleDragStart = (e: React.DragEvent, x: number, y: number) => {
     setDraggedLetter({ sourceX: x, sourceY: y });
@@ -339,22 +359,6 @@ const HashtagGame: React.FC<Props> = ({ zoomLevel }) => {
     );
   };
 
-  const resetGame = () => {
-    const words = find_combination();
-    const initialGrid = createInitialGrid(words);
-    const shuffledGrid = shuffleGrid(initialGrid);
-    const coloredGrid = updateLetterStates(shuffledGrid, initialGrid);
-    
-    setGameState({
-      initialGrid,
-      currentGrid: coloredGrid,
-      movesLeft: 12,
-      gameWon: false,
-      gameLost: false,
-      solutionShown: false
-    });
-  };
-
   const showSolution = () => {
     const solutionGrid = gameState.initialGrid.map(row =>
       row.map(letter =>
@@ -386,7 +390,7 @@ const HashtagGame: React.FC<Props> = ({ zoomLevel }) => {
             Félicitations ! Vous avez gagné !
           </div>
           <button
-            onClick={resetGame}
+            onClick={() => ref.current?.resetGame()}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
           >
             Nouvelle partie
@@ -409,7 +413,7 @@ const HashtagGame: React.FC<Props> = ({ zoomLevel }) => {
           )}
           <div className="h-4"></div>
           <button
-            onClick={resetGame}
+            onClick={() => ref.current?.resetGame()}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             Nouvelle partie
@@ -418,6 +422,6 @@ const HashtagGame: React.FC<Props> = ({ zoomLevel }) => {
       )}
     </div>
   );
-};
+});
 
 export default HashtagGame;

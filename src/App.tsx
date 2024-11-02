@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { WORDS_ALL } from './WORDS_ODS9_5';
-import { WORDS_WORDLE, WORDS_HASHTAG } from './WORDS5';
+import { WORDS_WORDLE} from './WORDS5';
 import GameBoard from './components/WordleGameBoard';
 import Keyboard from './components/Keyboard';
 import Header from './components/Header';
@@ -25,21 +25,25 @@ const App: React.FC = () => {
   const [currentGame, setCurrentGame] = useState('wordle');
   const [isHashtagHelpModalOpen, setIsHashtagHelpModalOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const hashtagGameRef = useRef<{ resetGame: () => void }>(null);
 
   useEffect(() => {
     setTargetWord(WORDS_WORDLE[Math.floor(Math.random() * WORDS_WORDLE.length)]);
   }, []);
 
   const resetGame = () => {
-    setTargetWord(WORDS_WORDLE[Math.floor(Math.random() * WORDS_WORDLE.length)]);
-    setGuesses([]);
-    setCurrentGuess('');
-    setGameOver(false);
-    setMessage('');
-    setMessageType('');
-    setUsedLetters({});
-    setCursorPosition(0);
-    setInvalidGuess(false);
+    if (currentGame === 'wordle') {
+      setTargetWord(WORDS_WORDLE[Math.floor(Math.random() * WORDS_WORDLE.length)]);
+      setGuesses([]);
+      setCurrentGuess('');
+      setGameOver(false);
+      setMessage('');
+      setMessageType('');
+      setUsedLetters({});
+      setCursorPosition(0);
+      setInvalidGuess(false);
+      
+    }
   };
 
   const handleKeyPress = useCallback((key: string) => {
@@ -185,6 +189,7 @@ const App: React.FC = () => {
         onZoomOut={() => handleZoom('out')}
         canZoomIn={zoomLevel < 2}
         canZoomOut={zoomLevel > 0.75}
+        onNewGame={resetGame}
       />
       <div 
         className="flex flex-col items-center flex-grow"
@@ -250,7 +255,7 @@ const App: React.FC = () => {
           </>
         ) : (
           <>
-            <HashtagGame zoomLevel={zoomLevel} />
+            <HashtagGame ref={hashtagGameRef} zoomLevel={zoomLevel} />
             <Modal
               isOpen={isHashtagHelpModalOpen}
               onClose={() => setIsHashtagHelpModalOpen(false)}
