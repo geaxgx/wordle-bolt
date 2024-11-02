@@ -390,7 +390,11 @@ const HashtagGame = React.forwardRef<{ resetGame: () => void }, Props>(({ zoomLe
             Félicitations ! Vous avez gagné !
           </div>
           <button
-            onClick={() => ref.current?.resetGame()}
+            onClick={() => {
+              if (ref.current) {
+                ref.current.resetGame();
+              }
+            }}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
           >
             Nouvelle partie

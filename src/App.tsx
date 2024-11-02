@@ -42,7 +42,8 @@ const App: React.FC = () => {
       setUsedLetters({});
       setCursorPosition(0);
       setInvalidGuess(false);
-      
+    } else if (currentGame === 'hashtag') {
+      hashtagGameRef.current?.resetGame();
     }
   };
 
