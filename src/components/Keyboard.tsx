@@ -6,7 +6,7 @@ interface KeyboardProps {
 }
 
 const Keyboard: React.FC<KeyboardProps> = ({ onKeyPress, usedLetters }) => {
-  console.log('Keyboard rendering', { usedLetters }); // Add this line for debugging
+  // console.log('Keyboard rendering', { usedLetters }); // Add this line for debugging
 
   const rows = [
     ['A', 'Z', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],

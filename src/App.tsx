@@ -19,7 +19,6 @@ const App: React.FC = () => {
   const [invalidGuess, setInvalidGuess] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
-    console.log('Initial theme:', savedTheme);
     return savedTheme ? savedTheme === 'dark' : false;
   });
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -151,7 +150,6 @@ const App: React.FC = () => {
   }, [handleKeyPress]);
 
   useEffect(() => {
-    console.log('Theme changed:', isDarkMode ? 'dark' : 'light');
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
       document.body.classList.add('bg-gray-900');

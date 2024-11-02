@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Word, find_combination } from '../hashtag_find_words';
 
 interface Letter {
   char: string;
@@ -20,18 +21,6 @@ interface GameState {
   gameLost: boolean;
   solutionShown: boolean;
 }
-
-interface Word {
-  word: string;
-  type: 'H1' | 'H2' | 'V1' | 'V2';
-}
-
-const FIXED_WORDS: Word[] = [
-  { word: 'LOYAL', type: 'H1' },
-  { word: 'BECHE', type: 'H2' },
-  { word: 'SOIES', type: 'V1' },
-  { word: 'GACHE', type: 'V2' }
-];
 
 const createInitialGrid = (words: Word[]): Letter[][] => {
   const grid: Letter[][] = Array(5).fill(null).map(() => Array(5).fill(null));
@@ -127,8 +116,6 @@ const updateLetterStates = (grid: Letter[][], initialGrid: Letter[][]): Letter[]
   const getWordStatus = (currentWord: string[], targetWord: string[]) => {
     const statuses = new Array(5).fill('unused');
     const targetLetterCount: Record<string, number> = {};
-    console.log('Current word:', currentWord);
-    console.log('Target word:', targetWord);
 
     // Count target letters
     targetWord.forEach(letter => {
@@ -152,7 +139,6 @@ const updateLetterStates = (grid: Letter[][], initialGrid: Letter[][]): Letter[]
         targetLetterCount[letter]--;
       }
     });
-    console.log('Statuses:', statuses);
     return statuses;
   };
 
@@ -203,7 +189,8 @@ interface Props {
 
 const HashtagGame: React.FC<Props> = ({ zoomLevel }) => {
   const [gameState, setGameState] = useState<GameState>(() => {
-    const initialGrid = createInitialGrid(FIXED_WORDS);
+    const words = find_combination();
+    const initialGrid = createInitialGrid(words);
     const shuffledGrid = shuffleGrid(initialGrid);
     const coloredGrid = updateLetterStates(shuffledGrid, initialGrid);
     
@@ -353,7 +340,8 @@ const HashtagGame: React.FC<Props> = ({ zoomLevel }) => {
   };
 
   const resetGame = () => {
-    const initialGrid = createInitialGrid(FIXED_WORDS);
+    const words = find_combination();
+    const initialGrid = createInitialGrid(words);
     const shuffledGrid = shuffleGrid(initialGrid);
     const coloredGrid = updateLetterStates(shuffledGrid, initialGrid);
     
