@@ -50,7 +50,7 @@ const Header: React.FC<HeaderProps> = ({ isDarkMode, setIsDarkMode, onHelpClick,
           onClick={onHelpClick}
           className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           aria-label="Help"
-          title="Aide"
+          title="Règle du jeu"
         >
           <HelpCircle className="w-6 h-6" />
         </Button>

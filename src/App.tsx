@@ -401,6 +401,8 @@ const App: React.FC = () => {
                       <span className="w-4 h-4 bg-gray-300 dark:bg-gray-600 rounded-sm mr-2"></span>
                       Gris : La lettre n'est pas dans le mot
                     </li>
+                    <li>Si la lettre est à l'intersection de 2 mots, cela signifie que la lettre n'est dans aucun des 2.</li>
+
                   </ul>
                 <p>Pour gagner vous disposez de 12 coups pour placer toutes les lettres à la bonne place.</p>
                 <p>Bonne chance !</p>
