@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Word, find_combination } from '../hashtag_find_words';
 
 interface Letter {
@@ -185,10 +185,12 @@ const updateLetterStates = (grid: Letter[][], initialGrid: Letter[][]): Letter[]
 
 interface Props {
   zoomLevel: number;
+  onGameEnd: (won: boolean, moves: number) => void;
+  renderGameStats: (gameType: 'wordle' | 'hashtag') => React.ReactNode;
   ref: React.ForwardedRef<{ resetGame: () => void }>;
 }
 
-const HashtagGame = React.forwardRef<{ resetGame: () => void }, Props>(({ zoomLevel }, ref) => {
+const HashtagGame = React.forwardRef<{ resetGame: () => void }, Props>(({ zoomLevel, onGameEnd, renderGameStats }, ref) => {
   const [gameState, setGameState] = useState<GameState>(() => {
     const words = find_combination();
     const initialGrid = createInitialGrid(words);
@@ -373,6 +375,14 @@ const HashtagGame = React.forwardRef<{ resetGame: () => void }, Props>(({ zoomLe
     }));
   };
 
+  useEffect(() => {
+    if (gameState.gameWon) {
+      onGameEnd(true, 12 - gameState.movesLeft);
+    } else if (gameState.gameLost) {
+      onGameEnd(false, 12 - gameState.movesLeft);
+    }
+  }, [gameState.gameWon, gameState.gameLost]);
+
   return (
     <div className="flex flex-col items-center p-4">
       <div className="mb-8">
@@ -386,16 +396,17 @@ const HashtagGame = React.forwardRef<{ resetGame: () => void }, Props>(({ zoomLe
 
       {gameState.gameWon && (
         <div className="mt-4 text-center">
-          <div className="text-green-600 dark:text-green-400 font-bold text-xl mb-4">
+          <div className="text-green-600 dark:text-green-400 font-bold text-xl mb-4 bold-font">
             Félicitations ! Vous avez gagné !
           </div>
+          {renderGameStats('hashtag')}
           <button
             onClick={() => {
               if (ref.current) {
                 ref.current.resetGame();
               }
             }}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors mt-4"
           >
             Nouvelle partie
           </button>
@@ -404,13 +415,14 @@ const HashtagGame = React.forwardRef<{ resetGame: () => void }, Props>(({ zoomLe
       
       {gameState.gameLost && (
         <div className="mt-4 text-center">
-          <div className="text-red-600 dark:text-red-400 font-bold text-xl mb-4">
+          <div className="text-red-600 dark:text-red-400 font-bold text-xl mb-4 bold-font">
             Trop tard ! Partie terminée !
           </div>
+          {renderGameStats('hashtag')}
           {!gameState.solutionShown && (
             <button
               onClick={showSolution}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors mb-4"
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors mb-1 mt-4"
             >
               Voir la solution
             </button>

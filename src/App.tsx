@@ -7,6 +7,19 @@ import Header from './components/Header';
 import Modal from './components/Modal';
 import HashtagGame from './components/HashtagGame';
 
+interface GameStats {
+  gamesPlayed: number;
+  gamesWon: number;
+  currentStreak: number;
+  bestStreak: number;
+  totalMovesToWin: number;
+}
+
+interface AllGameStats {
+  wordle: GameStats;
+  hashtag: GameStats;
+}
+
 const App: React.FC = () => {
   const [targetWord, setTargetWord] = useState('');
   const [guesses, setGuesses] = useState<string[]>([]);
@@ -32,6 +45,26 @@ const App: React.FC = () => {
     return savedZoom ? parseFloat(savedZoom) : 1;
   });
   const hashtagGameRef = useRef<{ resetGame: () => void }>(null);
+  const [gameStats, setGameStats] = useState<AllGameStats>(() => {
+    const savedStats = localStorage.getItem('gameStats');
+    return savedStats ? JSON.parse(savedStats) : {
+      wordle: {
+        gamesPlayed: 0,
+        gamesWon: 0,
+        currentStreak: 0,
+        bestStreak: 0,
+        totalMovesToWin: 0
+      },
+      hashtag: {
+        gamesPlayed: 0,
+        gamesWon: 0,
+        currentStreak: 0,
+        bestStreak: 0,
+        totalMovesToWin: 0
+      }
+    };
+  });
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
   useEffect(() => {
     if (currentGame === 'wordle') {
@@ -116,10 +149,12 @@ const App: React.FC = () => {
         setMessage('Félicitations ! Vous avez trouvé le mot !');
         setMessageType('success');
         setGameOver(true);
+        updateGameStats('wordle', true, guesses.length + 1);
       } else if (newGuesses.length === 6) {
         setMessage(`Partie terminée. Le mot était ${targetWord}`);
         setMessageType('error');
         setGameOver(true);
+        updateGameStats('wordle', false, 6);
       }
     } else if (/^[A-Z]$/.test(key)) {
       // Create a new guess string that's padded with spaces up to the cursor position
@@ -140,6 +175,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Prevent the using of the arrow keys to move the whole page
+      event.preventDefault();
       // Prevent the event from bubbling up
       event.stopPropagation();
       
@@ -192,12 +229,72 @@ const App: React.FC = () => {
     localStorage.setItem('currentGame', currentGame);
   }, [currentGame]);
 
+  const updateGameStats = (gameType: 'wordle' | 'hashtag', won: boolean, moves: number) => {
+    setGameStats(prevStats => {
+      const gameStats = prevStats[gameType];
+      const newStats = {
+        ...gameStats,
+        gamesPlayed: gameStats.gamesPlayed + 1,
+        gamesWon: won ? gameStats.gamesWon + 1 : gameStats.gamesWon,
+        currentStreak: won ? gameStats.currentStreak + 1 : 0,
+        bestStreak: won ? Math.max(gameStats.currentStreak + 1, gameStats.bestStreak) : gameStats.bestStreak,
+        totalMovesToWin: won ? gameStats.totalMovesToWin + moves : gameStats.totalMovesToWin
+      };
+      
+      const newAllStats = {
+        ...prevStats,
+        [gameType]: newStats
+      };
+      
+      localStorage.setItem('gameStats', JSON.stringify(newAllStats));
+      return newAllStats;
+    });
+  };
+
+  const renderGameStats = (gameType: 'wordle' | 'hashtag') => {
+    const stats = gameStats[gameType];
+    const averageMoves = stats.gamesWon > 0 
+      ? (stats.totalMovesToWin / stats.gamesWon).toFixed(1) 
+      : '-';
+
+    return (
+      <div className="mt-4 p-4 bg-green-100 dark:bg-gray-800 rounded-lg shadow">
+        <h3 className="text-lg font-bold mb-2 dark:text-white">Statistiques</h3>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="font-bold dark:text-white">Taux de victoire : {((stats.gamesWon / stats.gamesPlayed) * 100).toFixed(1)}% <div className="dark:text-white">pour {stats.gamesPlayed} parties jouées</div></div>
+          <div className="dark:text-white">Moyenne de coups par victoire : {averageMoves}</div>
+          <div className="dark:text-white">Série en cours : {stats.currentStreak}</div>
+          <div className="dark:text-white">Meilleure série : {stats.bestStreak}</div>
+        </div>
+      </div>
+    );
+  };
+
+  // Add resetGameStats function
+  const resetGameStats = (gameType: 'wordle' | 'hashtag') => {
+    setGameStats(prevStats => {
+      const newStats = {
+        ...prevStats,
+        [gameType]: {
+          gamesPlayed: 0,
+          gamesWon: 0,
+          currentStreak: 0,
+          bestStreak: 0,
+          totalMovesToWin: 0
+        }
+      };
+      localStorage.setItem('gameStats', JSON.stringify(newStats));
+      return newStats;
+    });
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
       <Header 
         isDarkMode={isDarkMode} 
         setIsDarkMode={setIsDarkMode}
         onHelpClick={() => currentGame === 'wordle' ? setIsHelpModalOpen(true) : setIsHashtagHelpModalOpen(true)}
+        onStatsClick={() => setIsStatsModalOpen(true)}
         currentGame={currentGame}
         onGameSelect={setCurrentGame}
         onZoomIn={() => handleZoom('in')}
@@ -248,8 +345,8 @@ const App: React.FC = () => {
               invalidGuess={invalidGuess}
               onTileClick={handleTileClick}
             />
-            {message && (
-              <div className={`mt-4 mb-4 p-2 rounded ${
+            {!gameOver && message && (
+              <div className={`mt-4 mb-4 p-2 rounded font-bold ${
                 messageType === 'success' ? 'bg-green-200 dark:bg-green-400 text-green-800 dark:text-green-900' :
                 messageType === 'error' ? 'bg-red-200 dark:bg-red-400 text-red-800 dark:text-red-900' :
                 messageType === 'warning' ? 'bg-yellow-200 dark:bg-yellow-400 text-yellow-800 dark:text-yellow-900' :
@@ -259,20 +356,28 @@ const App: React.FC = () => {
               </div>
             )}
             {gameOver && (
-              <button
-                // className="mt-2 mb-4 px-4 py-2 bg-blue-500 dark:bg-blue-700 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors"
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                
-                onClick={resetGame}
-              >
-                Nouvelle partie
-              </button>
+              <>
+                <div className={`mt-4 mb-4 p-2 rounded font-bold ${
+                  messageType === 'success' ? 'bg-green-200 dark:bg-green-400 text-green-800 dark:text-green-900' :
+                  messageType === 'error' ? 'bg-red-200 dark:bg-red-400 text-red-800 dark:text-red-900' :
+                  'bg-blue-200 dark:bg-blue-400 text-blue-800 dark:text-blue-900'
+                }`}>
+                  {message}
+                </div>
+                {renderGameStats('wordle')}
+                <button
+                  className="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                  onClick={resetGame}
+                >
+                  Nouvelle partie
+                </button>
+              </>
             )}
             <Keyboard onKeyPress={handleKeyPress} usedLetters={usedLetters} />
           </>
         ) : (
           <>
-            <HashtagGame ref={hashtagGameRef} zoomLevel={zoomLevel} />
+            <HashtagGame ref={hashtagGameRef} zoomLevel={zoomLevel} onGameEnd={(won, moves) => updateGameStats('hashtag', won, moves)} renderGameStats={renderGameStats} />
             <Modal
               isOpen={isHashtagHelpModalOpen}
               onClose={() => setIsHashtagHelpModalOpen(false)}
@@ -305,6 +410,25 @@ const App: React.FC = () => {
           </>
         )}
       </div>
+      <Modal
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+        title={currentGame.toUpperCase()}
+      >
+        <div>
+          {renderGameStats(currentGame === 'wordle' ? 'wordle' : 'hashtag')}
+          <button
+            onClick={() => {
+              if (window.confirm('Êtes-vous sûr de vouloir réinitialiser les statistiques ?')) {
+                resetGameStats(currentGame === 'wordle' ? 'wordle' : 'hashtag');
+              }
+            }}
+            className="mt-6 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Réinitialiser les statistiques
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

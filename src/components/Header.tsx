@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, HelpCircle, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
+import { Sun, Moon, HelpCircle, ZoomIn, ZoomOut, RefreshCw, BarChart2 } from 'lucide-react';
 import GameMenu from './GameMenu';
 import Button from './Button';
 
@@ -7,6 +7,7 @@ interface HeaderProps {
   isDarkMode: boolean;
   setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
   onHelpClick: () => void;
+  onStatsClick: () => void;
   currentGame: string;
   onGameSelect: (game: string) => void;
   onZoomIn: () => void;
@@ -16,7 +17,7 @@ interface HeaderProps {
   onNewGame: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ isDarkMode, setIsDarkMode, onHelpClick, currentGame, onGameSelect, onZoomIn, onZoomOut, canZoomIn, canZoomOut, onNewGame }) => {
+const Header: React.FC<HeaderProps> = ({ isDarkMode, setIsDarkMode, onHelpClick, onStatsClick, currentGame, onGameSelect, onZoomIn, onZoomOut, canZoomIn, canZoomOut, onNewGame }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -52,6 +53,14 @@ const Header: React.FC<HeaderProps> = ({ isDarkMode, setIsDarkMode, onHelpClick,
           title="Aide"
         >
           <HelpCircle className="w-6 h-6" />
+        </Button>
+        <Button
+          onClick={onStatsClick}
+          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          aria-label="Statistics"
+          title="Statistiques"
+        >
+          <BarChart2 className="w-6 h-6" />
         </Button>
       </div>
       <div className="space-x-2">
