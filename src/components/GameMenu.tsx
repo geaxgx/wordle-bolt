@@ -12,6 +12,7 @@ const GameMenu: React.FC<GameMenuProps> = ({ isOpen, onToggle, onGameSelect, cur
   const games = [
     { id: 'wordle', name: 'Wordle' },
     { id: 'hashtag', name: 'Hashtag' },
+    { id: 'jackpot', name: 'Jackpot' },
   ];
 
   return (

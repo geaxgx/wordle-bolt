@@ -6,6 +6,7 @@ import Keyboard from './components/Keyboard';
 import Header from './components/Header';
 import Modal from './components/Modal';
 import HashtagGame from './components/HashtagGame';
+import { JackpotGame } from './components/JackpotGame';
 
 interface GameStats {
   gamesPlayed: number;
@@ -18,7 +19,11 @@ interface GameStats {
 interface AllGameStats {
   wordle: GameStats;
   hashtag: GameStats;
+  jackpot: GameStats;
 }
+
+// Définir un type pour les jeux possibles
+type GameType = 'wordle' | 'hashtag' | 'jackpot';
 
 const App: React.FC = () => {
   const [targetWord, setTargetWord] = useState('');
@@ -40,6 +45,7 @@ const App: React.FC = () => {
     return savedGame || 'wordle';
   });
   const [isHashtagHelpModalOpen, setIsHashtagHelpModalOpen] = useState(false);
+  const [isJackpotHelpModalOpen, setIsJackpotHelpModalOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(() => {
     const savedZoom = localStorage.getItem('zoomLevel');
     return savedZoom ? parseFloat(savedZoom) : 1;
@@ -56,6 +62,13 @@ const App: React.FC = () => {
         totalMovesToWin: 0
       },
       hashtag: {
+        gamesPlayed: 0,
+        gamesWon: 0,
+        currentStreak: 0,
+        bestStreak: 0,
+        totalMovesToWin: 0
+      },
+      jackpot: {
         gamesPlayed: 0,
         gamesWon: 0,
         currentStreak: 0,
@@ -229,7 +242,7 @@ const App: React.FC = () => {
     localStorage.setItem('currentGame', currentGame);
   }, [currentGame]);
 
-  const updateGameStats = (gameType: 'wordle' | 'hashtag', won: boolean, moves: number) => {
+  const updateGameStats = (gameType: 'wordle' | 'hashtag' | 'jackpot', won: boolean, moves: number) => {
     setGameStats(prevStats => {
       const gameStats = prevStats[gameType];
       const newStats = {
@@ -251,8 +264,9 @@ const App: React.FC = () => {
     });
   };
 
-  const renderGameStats = (gameType: 'wordle' | 'hashtag') => {
-    const stats = gameStats[gameType];
+  // Modifier la signature de renderGameStats
+  const renderGameStats = (gameType: GameType) => {
+    const stats = gameStats[gameType];  // Maintenant TypeScript sait que gameType est une clé valide
     const averageMoves = stats.gamesWon > 0 
       ? (stats.totalMovesToWin / stats.gamesWon).toFixed(1) 
       : '-';
@@ -271,7 +285,7 @@ const App: React.FC = () => {
   };
 
   // Add resetGameStats function
-  const resetGameStats = (gameType: 'wordle' | 'hashtag') => {
+  const resetGameStats = (gameType: 'wordle' | 'hashtag' | 'jackpot') => {
     setGameStats(prevStats => {
       const newStats = {
         ...prevStats,
@@ -293,7 +307,19 @@ const App: React.FC = () => {
       <Header 
         isDarkMode={isDarkMode} 
         setIsDarkMode={setIsDarkMode}
-        onHelpClick={() => currentGame === 'wordle' ? setIsHelpModalOpen(true) : setIsHashtagHelpModalOpen(true)}
+        onHelpClick={() => {
+          switch (currentGame) {
+            case 'wordle':
+              setIsHelpModalOpen(true);
+              break;
+            case 'hashtag':
+              setIsHashtagHelpModalOpen(true);
+              break;
+            case 'jackpot':
+              setIsJackpotHelpModalOpen(true);
+              break;
+          }
+        }}
         onStatsClick={() => setIsStatsModalOpen(true)}
         currentGame={currentGame}
         onGameSelect={setCurrentGame}
@@ -377,7 +403,15 @@ const App: React.FC = () => {
           </>
         ) : (
           <>
-            <HashtagGame ref={hashtagGameRef} zoomLevel={zoomLevel} onGameEnd={(won, moves) => updateGameStats('hashtag', won, moves)} renderGameStats={renderGameStats} />
+            {currentGame === 'hashtag' ? (
+              <HashtagGame ref={hashtagGameRef} zoomLevel={zoomLevel} onGameEnd={(won, moves) => updateGameStats('hashtag', won, moves)} renderGameStats={renderGameStats} />
+            ) : (
+              <JackpotGame 
+                onGameEnd={(won, moves) => updateGameStats('jackpot', won, moves)}
+                renderGameStats={renderGameStats}
+                zoomLevel={zoomLevel}
+              />
+            )}
             <Modal
               isOpen={isHashtagHelpModalOpen}
               onClose={() => setIsHashtagHelpModalOpen(false)}
@@ -409,6 +443,17 @@ const App: React.FC = () => {
 
               </div>
             </Modal>
+            <Modal
+              isOpen={isJackpotHelpModalOpen}
+              onClose={() => setIsJackpotHelpModalOpen(false)}
+              title="Comment jouer au Jackpot"
+            >
+              <div className="space-y-4">
+                <p>Trouvez trois mots de 5 lettres, un mot par ligne en sachant que les lettres ont été mélangées VERTICALEMENT.</p>
+                <p>Utilisez la souris pour échanger 2 lettres d'une même colonne</p>
+                <p> Lorsqu'un mot du dictionnaire du jeu est reconstitué, ses cases prennent la couleur verte. Mais attention, cela ne veut pas dire que ce mot fait partie des mots à trouver.</p>
+              </div>
+            </Modal>
           </>
         )}
       </div>
@@ -418,11 +463,11 @@ const App: React.FC = () => {
         title={currentGame.toUpperCase()}
       >
         <div>
-          {renderGameStats(currentGame === 'wordle' ? 'wordle' : 'hashtag')}
+          {renderGameStats(currentGame as GameType)}
           <button
             onClick={() => {
               if (window.confirm('Êtes-vous sûr de vouloir réinitialiser les statistiques ?')) {
-                resetGameStats(currentGame === 'wordle' ? 'wordle' : 'hashtag');
+                resetGameStats(currentGame as GameType);
               }
             }}
             className="mt-6 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
