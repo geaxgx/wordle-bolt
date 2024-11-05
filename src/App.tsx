@@ -78,6 +78,7 @@ const App: React.FC = () => {
     };
   });
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const jackpotGameRef = useRef<{ resetGame: () => void }>(null);
 
   useEffect(() => {
     if (currentGame === 'wordle') {
@@ -98,6 +99,8 @@ const App: React.FC = () => {
       setInvalidGuess(false);
     } else if (currentGame === 'hashtag') {
       hashtagGameRef.current?.resetGame();
+    } else if (currentGame === 'jackpot') {
+      jackpotGameRef.current?.resetGame();
     }
   };
 
@@ -407,6 +410,7 @@ const App: React.FC = () => {
               <HashtagGame ref={hashtagGameRef} zoomLevel={zoomLevel} onGameEnd={(won, moves) => updateGameStats('hashtag', won, moves)} renderGameStats={renderGameStats} />
             ) : (
               <JackpotGame 
+                ref={jackpotGameRef}
                 onGameEnd={(won, moves) => updateGameStats('jackpot', won, moves)}
                 renderGameStats={renderGameStats}
                 zoomLevel={zoomLevel}
@@ -449,9 +453,9 @@ const App: React.FC = () => {
               title="Comment jouer au Jackpot"
             >
               <div className="space-y-4">
-                <p>Trouvez trois mots de 5 lettres, un mot par ligne en sachant que les lettres ont été mélangées VERTICALEMENT.</p>
+                <p>Trouvez 3, 4 ou 5 mots de 5 lettres, un mot par ligne, en sachant que les lettres ont été mélangées VERTICALEMENT.</p>
                 <p>Utilisez la souris pour échanger 2 lettres d'une même colonne</p>
-                <p> Lorsqu'un mot du dictionnaire du jeu est reconstitué, ses cases prennent la couleur verte. Mais attention, cela ne veut pas dire que ce mot fait partie des mots à trouver.</p>
+                <p> Lorsqu'un mot du dictionnaire du jeu est reconstitué, ses cases prennent la couleur verte. Mais attention, cela ne veut pas forcément dire que ce mot faisse partie des mots à trouver.</p>
               </div>
             </Modal>
           </>

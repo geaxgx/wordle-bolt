@@ -79,15 +79,12 @@ function shuffleLettersAtPosition(words: string[]): string[] {
 
     let consecutivePairsLeftCount = words.length - 1;
     for (let position = 1; position < 5; position++) { // Pas besoin de mélanger la première lettre
-        console.log("1) lastLetterOfShufWordIsFromWord:", lastLetterOfShufWordIsFromWord);    
 
         [lastLetterOfShufWordIsFromWord, consecutivePairsLeftCount] = findValidPermutation(lastLetterOfShufWordIsFromWord, consecutivePairsLeftCount);
-        console.log("2) lastLetterOfShufWordIsFromWord:", lastLetterOfShufWordIsFromWord, "consecutivePairsLeftCount:", consecutivePairsLeftCount);    
         for (let i =0; i<words.length; i++) {
             shuffledWords[i] = replaceCharAt(shuffledWords[i], position, words[lastLetterOfShufWordIsFromWord[i]][position]);
         }
     }
-    console.log("shuffledWords:", shuffledWords, "consecutivePairsLeftCount:", consecutivePairsLeftCount);
     return shuffledWords;
 }
 

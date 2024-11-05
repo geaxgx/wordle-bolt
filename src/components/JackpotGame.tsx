@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { findJackpotWords, isValidWord, JackpotWord } from '../jackpot_find_words';
 
 interface DragInfo {
@@ -12,7 +12,8 @@ interface JackpotGameProps {
   zoomLevel: number;
 }
 
-export const JackpotGame: React.FC<JackpotGameProps> = ({ onGameEnd, renderGameStats, zoomLevel }) => {
+export const JackpotGame = forwardRef<{ resetGame: () => void }, JackpotGameProps>(
+  ({ onGameEnd, renderGameStats, zoomLevel }, ref) => {
     const [words, setWords] = useState<JackpotWord[]>([]);
     const [draggedLetter, setDraggedLetter] = useState<DragInfo | null>(null);
     const [gameWon, setGameWon] = useState(false);
@@ -33,15 +34,23 @@ export const JackpotGame: React.FC<JackpotGameProps> = ({ onGameEnd, renderGameS
     const handleDragStart = (e: React.DragEvent, row: number, col: number) => {
         setDraggedLetter({ row, col });
 
-        // Créer un clone de l'élément traîné
+        // Get the original element's position
+        const originalRect = e.currentTarget.getBoundingClientRect();
+        
+        // Create dragged element clone
         const draggedEl = e.currentTarget.cloneNode(true) as HTMLElement;
         draggedEl.style.position = 'absolute';
+        draggedEl.style.left = `${originalRect.left}px`;
         draggedEl.style.top = '0';
-        draggedEl.style.left = '0';
         draggedEl.style.pointerEvents = 'none';
+        draggedEl.style.opacity = '0.6';
         
-        // Définir la taille en fonction du niveau de zoom
-        const baseSize = 56; // 56px = 3.5rem (w-14)
+        // Add performance-oriented CSS properties
+        draggedEl.style.willChange = 'transform';
+        draggedEl.style.transform = 'translateY(0)';
+        draggedEl.style.transition = 'none';
+        
+        const baseSize = 56;
         draggedEl.style.width = `${baseSize * zoomLevel}px`;
         draggedEl.style.height = `${baseSize * zoomLevel}px`;
         draggedEl.style.display = 'flex';
@@ -51,14 +60,26 @@ export const JackpotGame: React.FC<JackpotGameProps> = ({ onGameEnd, renderGameS
 
         document.body.appendChild(draggedEl);
 
-        const offsetX = (baseSize * zoomLevel) / 2;
-        const offsetY = (baseSize * zoomLevel) / 2;
+        const img = new Image();
+        img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        e.dataTransfer.setDragImage(img, 0, 0);
 
-        e.dataTransfer.setDragImage(draggedEl, offsetX, offsetY);
+        // Use requestAnimationFrame for smoother updates
+        let rafId: number;
+        const handleDragMove = (moveEvent: DragEvent) => {
+            cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+                const y = moveEvent.clientY - (baseSize * zoomLevel / 2);
+                draggedEl.style.transform = `translateY(${y}px)`;
+            });
+        };
 
-        setTimeout(() => {
+        document.addEventListener('dragover', handleDragMove);
+        document.addEventListener('dragend', () => {
+            cancelAnimationFrame(rafId);
+            document.removeEventListener('dragover', handleDragMove);
             document.body.removeChild(draggedEl);
-        }, 0);
+        }, { once: true });
     };
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -109,6 +130,13 @@ export const JackpotGame: React.FC<JackpotGameProps> = ({ onGameEnd, renderGameS
             onGameEnd(true, newMoves);
         }
     };
+
+    // Expose resetGame method through ref
+    useImperativeHandle(ref, () => ({
+      resetGame: () => {
+        startNewGame();
+      }
+    }));
 
     return (
         <div className="flex flex-col items-center gap-4 p-4">
@@ -178,7 +206,6 @@ export const JackpotGame: React.FC<JackpotGameProps> = ({ onGameEnd, renderGameS
             >
                 Nouvelle partie
             </button>
-            {renderGameStats('jackpot' as const)}
         </div>
     );
-}; 
+}); 
