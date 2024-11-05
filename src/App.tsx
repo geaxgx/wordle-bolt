@@ -79,6 +79,7 @@ const App: React.FC = () => {
   });
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const jackpotGameRef = useRef<{ resetGame: () => void }>(null);
+  // const [lostWord, setTargetWord] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentGame === 'wordle') {
@@ -162,12 +163,14 @@ const App: React.FC = () => {
       setUsedLetters(newUsedLetters);
 
       if (currentGuess === targetWord) {
-        setMessage('Félicitations ! Vous avez trouvé le mot !');
+        setMessage('Félicitations ! Le mot à trouver est bien ');
         setMessageType('success');
+        setTargetWord(targetWord);
         setGameOver(true);
         updateGameStats('wordle', true, guesses.length + 1);
       } else if (newGuesses.length === 6) {
-        setMessage(`Partie terminée. Le mot était ${targetWord}`);
+        setMessage('Partie terminée. Le mot était ');
+        setTargetWord(targetWord);
         setMessageType('error');
         setGameOver(true);
         updateGameStats('wordle', false, 6);
@@ -391,7 +394,7 @@ const App: React.FC = () => {
                   messageType === 'error' ? 'bg-red-200 dark:bg-red-400 text-red-800 dark:text-red-900' :
                   'bg-blue-200 dark:bg-blue-400 text-blue-800 dark:text-blue-900'
                 }`}>
-                  {message}
+                  {message}  {targetWord ? <a href={`https://fr.wikwik.org/${targetWord.toLowerCase()}`} target="_blank" rel="noopener noreferrer" className="underline text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200">{targetWord}</a> : ''}
                 </div>
                 {renderGameStats('wordle')}
                 <button
@@ -402,7 +405,9 @@ const App: React.FC = () => {
                 </button>
               </>
             )}
-            <Keyboard onKeyPress={handleKeyPress} usedLetters={usedLetters} />
+            {!gameOver && (
+              <Keyboard onKeyPress={handleKeyPress} usedLetters={usedLetters} />
+            )}
           </>
         ) : (
           <>
