@@ -41,14 +41,13 @@ function findValidPermutation(array: number[], consecutivePairsLeftCount: number
 
     while (attempts < MAX_ATTEMPTS) {
         attempts++;
-        const shuffledArray = shuffleArray([...array]); // Create a copy to avoid modifying original array
+        const shuffledArray = shuffleArray([...array]);
         const matchingElementsCount = countMatchingElements(shuffledArray, array);
-        if (matchingElementsCount === 3) {
+        if (matchingElementsCount === array.length) {
             continue;
         }
         if (matchingElementsCount === 1) {
             if (consecutivePairsLeftCount > 0) {
-                // Tirage au sort tel que une fois sur 5, found = true
                 if (Math.random() < 0.2) {
                     consecutivePairsLeftCount--;
                     return [shuffledArray, consecutivePairsLeftCount];
@@ -76,11 +75,9 @@ function replaceCharAt(str: string, index: number, replacement: string): string 
 // On veut éviter les paires consécutives de lettres qui apparaissent dans un mot d'origine et un mot mélangé (un seul cas autorisé au maximum)
 function shuffleLettersAtPosition(words: string[]): string[] {
     let shuffledWords = [...words];
-    // Tire au sort un indice entre 1 et 4 qui correspond à la position où une paire consécutive est autorisée
-    // const position_paire_consecutive_autorisee = Math.floor(Math.random() * 4) + 1;
-    let lastLetterOfShufWordIsFromWord = [0, 1, 2];
+    let lastLetterOfShufWordIsFromWord = Array.from({length: words.length}, (_, i) => i);
 
-    let consecutivePairsLeftCount = 2;
+    let consecutivePairsLeftCount = words.length - 1;
     for (let position = 1; position < 5; position++) { // Pas besoin de mélanger la première lettre
         console.log("1) lastLetterOfShufWordIsFromWord:", lastLetterOfShufWordIsFromWord);    
 
@@ -100,27 +97,31 @@ export type JackpotWord = {
     isValid: boolean;
 };
 
-export function findJackpotWords(): JackpotWord[] {
+export function findJackpotWords(wordCount: number = 3): JackpotWord[] {
+    if (wordCount < 3 || wordCount > 5) {
+        throw new Error("Word count must be between 3 and 5");
+    }
+
     let validCombinationFound = false;
     let selectedWords: string[] = [];
 
     while (!validCombinationFound) {
-        // Sélectionner 3 mots au hasard
-        selectedWords = Array(3).fill('').map(() => 
+        // Select wordCount words at random
+        selectedWords = Array(wordCount).fill('').map(() => 
             WORDS_WORDLE[Math.floor(Math.random() * WORDS_WORDLE.length)]
         );
 
-        // Vérifier que les mots sont différents
-        if (new Set(selectedWords).size !== 3) continue;
+        // Verify words are different
+        if (new Set(selectedWords).size !== wordCount) continue;
 
-        // Vérifier que les lettres sont différentes à chaque position
+        // Verify letters are different at each position
         const differentLettersAtEachPosition = Array.from({length: 5}, (_, i) => i)
             .every(pos => areLettersDifferentAtPosition(selectedWords, pos));
 
         if (!differentLettersAtEachPosition) continue;
 
-        // Vérifier le nombre de lettres rares
-        if (countRareLetters(selectedWords) >= 3) {
+        // Verify the number of rare letters
+        if (countRareLetters(selectedWords) >= wordCount) {
             validCombinationFound = true;
         }
     }

@@ -17,13 +17,14 @@ export const JackpotGame: React.FC<JackpotGameProps> = ({ onGameEnd, renderGameS
     const [draggedLetter, setDraggedLetter] = useState<DragInfo | null>(null);
     const [gameWon, setGameWon] = useState(false);
     const [moves, setMoves] = useState(0);
+    const [wordCount, setWordCount] = useState(3);
 
     useEffect(() => {
         startNewGame();
-    }, []);
+    }, [wordCount]);
 
     const startNewGame = () => {
-        setWords(findJackpotWords());
+        setWords(findJackpotWords(wordCount));
         setDraggedLetter(null);
         setGameWon(false);
         setMoves(0);
@@ -111,8 +112,30 @@ export const JackpotGame: React.FC<JackpotGameProps> = ({ onGameEnd, renderGameS
 
     return (
         <div className="flex flex-col items-center gap-4 p-4">
-            <h1 className="text-4xl font-bold mb-8 text-black dark:text-white">Jackpot</h1>
-            <div className="grid grid-rows-3 gap-1">
+            <h1 className="text-4xl font-bold mb-4 text-black dark:text-white">Jackpot</h1>
+            
+            {/* Word count selection */}
+            <div className="flex flex-col items-center mb-4 bg-green-100 dark:bg-green-900/20 p-4 rounded-lg shadow-md">
+                <p className="text-black dark:text-white mb-2">Nombre de mots à trouver :</p>
+                <div className="flex gap-4">
+                    {[3, 4, 5].map((count) => (
+                        <label key={count} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="radio"
+                                name="wordCount"
+                                value={count}
+                                checked={wordCount === count}
+                                onChange={(e) => setWordCount(Number(e.target.value))}
+                                className="form-radio text-blue-500"
+                            />
+                            <span className="text-black dark:text-white">{count}</span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            {/* Update the grid to use dynamic rows based on wordCount */}
+            <div className={`grid gap-1`} style={{ gridTemplateRows: `repeat(${wordCount}, minmax(0, 1fr))` }}>
                 {words.map((wordObj, rowIndex) => (
                     <div key={rowIndex} className="grid grid-cols-5 gap-1">
                         {wordObj.currentWord.split('').map((letter, colIndex) => {
@@ -143,6 +166,7 @@ export const JackpotGame: React.FC<JackpotGameProps> = ({ onGameEnd, renderGameS
                     </div>
                 ))}
             </div>
+
             {gameWon && (
                 <div className="text-2xl font-bold text-green-500 dark:text-green-400 mt-4">
                     Félicitations ! Vous avez gagné !
