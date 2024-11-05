@@ -163,14 +163,14 @@ const App: React.FC = () => {
       setUsedLetters(newUsedLetters);
 
       if (currentGuess === targetWord) {
-        setMessage('Félicitations ! Le mot à trouver est bien ');
+        setMessage('Félicitations ! Le mot à trouver était ');
         setMessageType('success');
-        setTargetWord(targetWord);
+        // setTargetWord(targetWord);
         setGameOver(true);
         updateGameStats('wordle', true, guesses.length + 1);
       } else if (newGuesses.length === 6) {
         setMessage('Partie terminée. Le mot était ');
-        setTargetWord(targetWord);
+        // setTargetWord(targetWord);
         setMessageType('error');
         setGameOver(true);
         updateGameStats('wordle', false, 6);
