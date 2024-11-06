@@ -209,6 +209,9 @@ const HashtagGame = React.forwardRef<{ resetGame: () => void }, Props>(({ zoomLe
 
   const [draggedLetter, setDraggedLetter] = useState<DragInfo | null>(null);
 
+  // Ajouter un nouvel état pour suivre la cellule survolée
+  const [hoveredCell, setHoveredCell] = useState<{x: number, y: number} | null>(null);
+
   // Expose resetGame function through ref
   React.useImperativeHandle(ref, () => ({
     resetGame: () => {
@@ -260,11 +263,17 @@ const HashtagGame = React.forwardRef<{ resetGame: () => void }, Props>(({ zoomLe
     }, 0);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault(); // Necessary to allow drop
+  const handleDragOver = (e: React.DragEvent, x: number, y: number) => {
+    e.preventDefault();
+    setHoveredCell({ x, y });
+  };
+
+  const handleDragLeave = () => {
+    setHoveredCell(null);
   };
 
   const handleDrop = (targetX: number, targetY: number) => {
+    setHoveredCell(null);
     if (!draggedLetter || gameState.gameWon || gameState.gameLost) return;
 
     const { sourceX, sourceY } = draggedLetter;
@@ -307,20 +316,27 @@ const HashtagGame = React.forwardRef<{ resetGame: () => void }, Props>(({ zoomLe
     setDraggedLetter(null);
   };
 
-  const getLetterStyle = (state: Letter['state'], isDragging: boolean) => {
+  const getLetterStyle = (state: Letter['state'], isDragging: boolean, isHovered: boolean) => {
     const base = `w-14 h-14 flex items-center justify-center text-2xl font-bold rounded-md 
                  cursor-move transition-all duration-300 select-none`;
     
     const dragClass = isDragging ? 'opacity-50' : '';
+    const hoverClass = isHovered ? 'ring-2 ring-blue-500 bg-blue-100 dark:bg-blue-900' : '';
     
     switch (state) {
       case 'correct':
-        return `${base} ${dragClass} bg-green-500 text-white border-green-500`;
+        return `${base} ${dragClass} ${hoverClass} bg-green-500 text-white border-green-500`;
       case 'selected':
-        return `${base} ${dragClass} bg-yellow-500 text-white border-yellow-500`;
+        return `${base} ${dragClass} ${hoverClass} bg-yellow-500 text-white border-yellow-500`;
       default:
-        return `${base} ${dragClass} bg-gray-300 dark:bg-gray-600 text-black dark:text-white border-gray-300 dark:border-gray-600`;
+        return `${base} ${dragClass} ${hoverClass} bg-gray-300 dark:bg-gray-600 text-black dark:text-white border-gray-300 dark:border-gray-600`;
     }
+  };
+
+  // Ajouter le gestionnaire onDragEnd
+  const handleDragEnd = () => {
+    setDraggedLetter(null);
+    setHoveredCell(null);
   };
 
   // Create a grid representation
@@ -343,14 +359,29 @@ const HashtagGame = React.forwardRef<{ resetGame: () => void }, Props>(({ zoomLe
             {row.map((letter, x) => (
               <div
                 key={`${x}-${y}`}
-                className={letter ? getLetterStyle(
+                className={`${letter ? getLetterStyle(
                   letter.state,
-                  draggedLetter?.sourceX === x && draggedLetter?.sourceY === y
-                ) : 'w-14 h-14'}
+                  draggedLetter?.sourceX === x && draggedLetter?.sourceY === y,
+                  hoveredCell?.x === x && hoveredCell?.y === y
+                ) : 'w-14 h-14'}`}
                 draggable={!!letter}
                 onDragStart={(e) => handleDragStart(e, x, y)}
-                onDragOver={handleDragOver}
-                onDrop={() => handleDrop(x, y)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDragOver(e, x, y);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDragLeave();
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDrop(x, y);
+                }}
               >
                 {letter?.char}
               </div>

@@ -25,13 +25,19 @@ export const JackpotGame = forwardRef<{ resetGame: () => void }, JackpotGameProp
     const [wordCount, setWordCount] = useState(3);
     const [draggedLine, setDraggedLine] = useState<LineDropInfo | null>(null);
     const [dropTargetRow, setDropTargetRow] = useState<number | null>(null);
+    const [hoveredCell, setHoveredCell] = useState<DragInfo | null>(null);
 
     useEffect(() => {
         startNewGame();
     }, [wordCount]);
 
     const startNewGame = () => {
-        setWords(findJackpotWords(wordCount));
+        const newWords = findJackpotWords(wordCount);
+        // Vérifier la validité de chaque mot dès le début
+        newWords.forEach(wordObj => {
+            wordObj.isValid = isValidWord(wordObj.currentWord);
+        });
+        setWords(newWords);
         setDraggedLetter(null);
         setGameWon(false);
         setMoves(0);
@@ -88,11 +94,22 @@ export const JackpotGame = forwardRef<{ resetGame: () => void }, JackpotGameProp
         }, { once: true });
     };
 
-    const handleDragOver = (e: React.DragEvent) => {
+    const handleDragOver = (e: React.DragEvent, row: number, col: number) => {
         e.preventDefault();
+        if (draggedLetter) {
+            // Ne mettre à jour que si on survole une cellule de la même colonne
+            if (draggedLetter.col === col && draggedLetter.row !== row) {
+                setHoveredCell({ row, col });
+            }
+        }
+    };
+
+    const handleDragLeave = () => {
+        setHoveredCell(null);
     };
 
     const handleDrop = (targetRow: number, targetCol: number) => {
+        setHoveredCell(null);
         if (!draggedLetter || gameWon) return;
 
         const { row: sourceRow, col: sourceCol } = draggedLetter;
@@ -163,7 +180,13 @@ export const JackpotGame = forwardRef<{ resetGame: () => void }, JackpotGameProp
         draggedEl.style.width = `${originalRect.width}px`;
         draggedEl.style.pointerEvents = 'none';
         draggedEl.style.opacity = '0.8';
-        draggedEl.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+
+        // Check if dark mode is active
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        draggedEl.style.backgroundColor = isDarkMode 
+            ? 'rgba(0, 0, 0, 0.1)'  // Dark mode: light background with low opacity
+            : 'rgba(255, 255, 255, 0.1)';      // Light mode: dark background with low opacity
+        
         draggedEl.style.willChange = 'transform';
         draggedEl.style.transition = 'none';
         draggedEl.style.zIndex = '1000';
@@ -267,6 +290,7 @@ export const JackpotGame = forwardRef<{ resetGame: () => void }, JackpotGameProp
                 {words.map((wordObj, rowIndex) => (
                     <div key={rowIndex} className="flex items-center gap-2">
                         <div
+                            // className={`w-6 h-14 bg-gray-200 dark:bg-gray-700 rounded-md cursor-move flex items-center justify-center
                             className={`w-6 h-14 bg-gray-200 dark:bg-gray-700 rounded-md cursor-move flex items-center justify-center
                                 ${dropTargetRow === rowIndex ? 'ring-2 ring-blue-500 bg-blue-100 dark:bg-blue-900/40' : ''}`}
                             draggable={true}
@@ -295,6 +319,9 @@ export const JackpotGame = forwardRef<{ resetGame: () => void }, JackpotGameProp
                                     if (draggedLetter?.row === rowIndex && draggedLetter?.col === colIndex) {
                                         className += ' opacity-50';
                                     }
+                                    if (hoveredCell?.row === rowIndex && hoveredCell?.col === colIndex) {
+                                        className += ' ring-2 ring-blue-500 bg-blue-100 dark:bg-blue-900/40';
+                                    }
                                 }
 
                                 return (
@@ -303,7 +330,8 @@ export const JackpotGame = forwardRef<{ resetGame: () => void }, JackpotGameProp
                                         className={className}
                                         draggable={true}
                                         onDragStart={(e) => handleDragStart(e, rowIndex, colIndex)}
-                                        onDragOver={handleDragOver}
+                                        onDragOver={(e) => handleDragOver(e, rowIndex, colIndex)}
+                                        onDragLeave={handleDragLeave}
                                         onDrop={() => handleDrop(rowIndex, colIndex)}
                                     >
                                         {letter}
@@ -320,12 +348,14 @@ export const JackpotGame = forwardRef<{ resetGame: () => void }, JackpotGameProp
                     Félicitations ! Vous avez gagné !
                 </div>
             )}
-            <button 
-                onClick={startNewGame}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-                Nouvelle partie
-            </button>
+            {gameWon && (
+                <button 
+                    onClick={startNewGame}
+                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                    Nouvelle partie
+                </button>
+            )}
         </div>
     );
 }); 
