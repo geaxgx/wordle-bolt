@@ -22,7 +22,10 @@ export const JackpotGame = forwardRef<{ resetGame: () => void }, JackpotGameProp
     const [draggedLetter, setDraggedLetter] = useState<DragInfo | null>(null);
     const [gameWon, setGameWon] = useState(false);
     const [moves, setMoves] = useState(0);
-    const [wordCount, setWordCount] = useState(3);
+    const [wordCount, setWordCount] = useState(() => {
+      const saved = localStorage.getItem('jackpotWordCount');
+      return saved ? parseInt(saved, 10) : 3;
+    });
     const [draggedLine, setDraggedLine] = useState<LineDropInfo | null>(null);
     const [dropTargetRow, setDropTargetRow] = useState<number | null>(null);
     const [hoveredCell, setHoveredCell] = useState<DragInfo | null>(null);
@@ -254,6 +257,11 @@ export const JackpotGame = forwardRef<{ resetGame: () => void }, JackpotGameProp
         }
     };
 
+    const handleWordCountChange = (count: number) => {
+      setWordCount(count);
+      localStorage.setItem('jackpotWordCount', count.toString());
+    };
+
     // Expose resetGame method through ref
     useImperativeHandle(ref, () => ({
       resetGame: () => {
@@ -276,7 +284,7 @@ export const JackpotGame = forwardRef<{ resetGame: () => void }, JackpotGameProp
                                 name="wordCount"
                                 value={count}
                                 checked={wordCount === count}
-                                onChange={(e) => setWordCount(Number(e.target.value))}
+                                onChange={(e) => handleWordCountChange(Number(e.target.value))}
                                 className="form-radio text-blue-500"
                             />
                             <span className="text-black dark:text-white">{count}</span>
