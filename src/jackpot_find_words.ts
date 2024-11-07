@@ -1,4 +1,5 @@
 import { WORDS_WORDLE } from './WORDS5';
+import { addWordToHistory, getRandomWordNotInHistory } from './utils/wordHistory';
 
 const LETTRES_RARES: string[] = "PGBVHFQYXJKWZ".split('');
 
@@ -103,9 +104,9 @@ export function findJackpotWords(wordCount: number = 3): JackpotWord[] {
     let selectedWords: string[] = [];
 
     while (!validCombinationFound) {
-        // Select wordCount words at random
+        // Select wordCount words at random using getRandomWordNotInHistory
         selectedWords = Array(wordCount).fill('').map(() => 
-            WORDS_WORDLE[Math.floor(Math.random() * WORDS_WORDLE.length)]
+            getRandomWordNotInHistory(WORDS_WORDLE)
         );
 
         // Verify words are different
@@ -122,7 +123,9 @@ export function findJackpotWords(wordCount: number = 3): JackpotWord[] {
             validCombinationFound = true;
         }
     }
-    console.log(selectedWords);
+
+    // Ajouter les mots à l'historique
+    selectedWords.forEach(word => addWordToHistory(word));
 
     // Mélanger les lettres à chaque position
     const shuffledWords = shuffleLettersAtPosition(selectedWords);

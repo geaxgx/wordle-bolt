@@ -1,4 +1,5 @@
 import { WORDS_HASHTAG } from './WORDS5';
+import { addWordToHistory, getRandomWordNotInHistory, isWordInHistory } from './utils/wordHistory';
 
 // Tableau des lettres rares
 const LETTRES_RARES: string[] = "PGBVHFQYXJKWZ".split('');
@@ -8,6 +9,7 @@ function regrouper_par_2eme_lettre(mots: string[]): Map<string, string[]> {
     const groupes = new Map<string, string[]>();
     
     for (const mot of mots) {
+        if (isWordInHistory(mot)) continue;
         const deuxiemeLettre = mot[1];
         if (!groupes.has(deuxiemeLettre)) {
             groupes.set(deuxiemeLettre, []);
@@ -46,6 +48,8 @@ export type Word = {
 
 export function find_combination(): Word[] {
   const [mot1, mot2, mot3, mot4] = find_combination_internal();
+  // Ajouter les mots à l'historique
+  [mot1, mot2, mot3, mot4].forEach(word => addWordToHistory(word));
   return [
     { word: mot1, type: 'H1' },
     { word: mot2, type: 'H2' },
@@ -62,7 +66,7 @@ function find_combination_internal(): Combination {
 
     while (!combi_found) {
         // Choix mot1
-        mot1 = WORDS_HASHTAG[Math.floor(Math.random() * WORDS_HASHTAG.length)];
+        mot1 = getRandomWordNotInHistory(WORDS_HASHTAG);
         
         // Choix mot3
         const mot3_candidats = mots_par_l2.get(mot1[1]) || [];

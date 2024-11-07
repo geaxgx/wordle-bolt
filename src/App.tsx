@@ -7,6 +7,7 @@ import Header from './components/Header';
 import Modal from './components/Modal';
 import HashtagGame from './components/HashtagGame';
 import { JackpotGame } from './components/JackpotGame';
+import { addWordToHistory, getRandomWordNotInHistory } from './utils/wordHistory';
 
 interface GameStats {
   gamesPlayed: number;
@@ -83,7 +84,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (currentGame === 'wordle') {
-      setTargetWord(WORDS_WORDLE[Math.floor(Math.random() * WORDS_WORDLE.length)]);
+      setTargetWord(getRandomWordNotInHistory(WORDS_WORDLE));
     }
   }, [currentGame]);
 
@@ -165,15 +166,15 @@ const App: React.FC = () => {
       if (currentGuess === targetWord) {
         setMessage('Félicitations ! Le mot à trouver était ');
         setMessageType('success');
-        // setTargetWord(targetWord);
         setGameOver(true);
         updateGameStats('wordle', true, guesses.length + 1);
+        addWordToHistory(targetWord);
       } else if (newGuesses.length === 6) {
         setMessage('Partie terminée. Le mot était ');
-        // setTargetWord(targetWord);
         setMessageType('error');
         setGameOver(true);
         updateGameStats('wordle', false, 6);
+        addWordToHistory(targetWord);
       }
     } else if (/^[A-Z]$/.test(key)) {
       // Create a new guess string that's padded with spaces up to the cursor position
