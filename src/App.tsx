@@ -8,6 +8,7 @@ import Modal from './components/Modal';
 import HashtagGame from './components/HashtagGame';
 import { JackpotGame } from './components/JackpotGame';
 import { addWordToHistory, getRandomWordNotInHistory } from './utils/wordHistory';
+import { FaBook } from 'react-icons/fa';
 
 interface GameStats {
   gamesPlayed: number;
@@ -80,6 +81,7 @@ const App: React.FC = () => {
   });
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const jackpotGameRef = useRef<{ resetGame: () => void }>(null);
+  const [wordDefinition, setWordDefinition] = useState<string>('');
   // const [lostWord, setTargetWord] = useState<string | null>(null);
 
   useEffect(() => {
@@ -169,6 +171,17 @@ const App: React.FC = () => {
         setGameOver(true);
         updateGameStats('wordle', true, guesses.length + 1);
         addWordToHistory(targetWord);
+        
+        // Charger la définition
+        fetch(`https://fr.wikwik.org/${targetWord.toLowerCase()}`)
+          .then(response => response.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const definition = doc.querySelector('.mw-parser-output p')?.textContent || 'Définition non disponible';
+            setWordDefinition(definition);
+          })
+          .catch(() => setWordDefinition('Définition non disponible'));
       } else if (newGuesses.length === 6) {
         setMessage('Partie terminée. Le mot était ');
         setMessageType('error');
@@ -377,6 +390,8 @@ const App: React.FC = () => {
               cursorPosition={cursorPosition}
               invalidGuess={invalidGuess}
               onTileClick={handleTileClick}
+              gameOver={gameOver}
+              wordDefinition={wordDefinition}
             />
             {!gameOver && message && (
               <div className={`mt-4 mb-4 p-2 rounded font-bold ${
